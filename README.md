@@ -1,6 +1,6 @@
 # FTCNotes
 
-<h2>The best scouting/notetaking app for FTC</h2>
+<h2>The best scouting and notetaking app for FTC </h2>
 
 ## Technologies
 ![React Native](https://img.shields.io/badge/React%20Native-4FB0D6?style=for-the-badge&logo=react&logoColor=white)
@@ -12,3 +12,12 @@
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 ![Expo](https://img.shields.io/badge/Expo-111827?style=for-the-badge&logo=expo&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-2F6D8C?style=for-the-badge&logo=postgresql&logoColor=white)
+
+## Showcase
+<p float="left">
+  <img src="./readMeImages/eventsPicture" width="245"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./readMeImages/teamsPicture" width="245" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./readMeImages/infoPicture" width="245" />
+</p>
