@@ -1,6 +1,6 @@
 # FTCNotes
 
-<h2>The best scouting and notetaking app for FTC Events</h2>
+<h2>The best scouting and notetaking app for FTC </h2>
 
 ## Technologies
 ![React Native](https://img.shields.io/badge/React%20Native-4FB0D6?style=for-the-badge&logo=react&logoColor=white)
