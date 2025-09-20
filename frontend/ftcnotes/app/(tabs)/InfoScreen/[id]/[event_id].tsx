@@ -35,7 +35,8 @@ export default function InfoScreen() {
       })
       .catch((err) => console.error("Error fetching events:", err));
 
-    fetch(`https://inp.pythonanywhere.com/api/teams/${event_id}`)
+    // gets team to display on topbar
+    fetch(`https://inp.pythonanywhere.com/api/get-team/${id}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch team: ${res.status}`);
@@ -43,8 +44,7 @@ export default function InfoScreen() {
         return res.json();
       })
       .then((data) => {
-        const team = data[0];
-        setTeamName(team["name"]);
+        setTeam(data);
       });
   };
 
@@ -84,7 +84,14 @@ export default function InfoScreen() {
     console.log(event_id);
     router.push(`../../TeamsScreen/${event_id}`);
   };
-  const [teamName, setTeamName] = useState(""); // stores and displays team name
+
+  const [team, setTeam] = useState<{
+    team_id: number;
+    event_id: number;
+    date_created: string;
+    name: string;
+    number: number;
+  } | null>(null);
 
   const [showForm, setShowForm] = useState(false); // toggles form visibility
   const [addInfo, setAddInfo] = useState(true); // Initial text on screen
@@ -97,7 +104,6 @@ export default function InfoScreen() {
 
   const handleAddEvent = () => {
     console.log(id);
-    if (notes.trim().length === 0) return;
     fetch(`https://inp.pythonanywhere.com/api/create-info`, {
       method: "POST",
       body: JSON.stringify({
@@ -145,9 +151,29 @@ export default function InfoScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={styles.topBar}>
-        <TouchableOpacity activeOpacity={0.3} onPress={teamsPage}>
-          <Image style={styles.backIcon} source={backIcon} />
-        </TouchableOpacity>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          <TouchableOpacity activeOpacity={0.3} onPress={teamsPage}>
+            <Image style={styles.backIcon} source={backIcon} />
+          </TouchableOpacity>
+
+          <Text
+            style={[
+              styles.text,
+              { paddingTop: 25 },
+              { color: theme.textColor },
+              { fontSize: 28 },
+            ]}
+          >
+            {team?.name && team.name.length > 18
+              ? team.name.slice(0, 18) + "..."
+              : team?.name}
+          </Text>
+        </View>
 
         <TouchableOpacity activeOpacity={0.3} onPress={eventSetupFunc}>
           <Image style={styles.plusIcon} source={plusIcon} />
@@ -164,7 +190,7 @@ export default function InfoScreen() {
                 { color: theme.textColor },
               ]}
             >
-              {teamName}:
+              #{team?.number}
             </Text>
             <Text
               style={[
@@ -270,16 +296,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   backIcon: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     padding: 8,
     marginLeft: 15,
+    marginTop: 11,
   },
   plusIcon: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     padding: 10,
-    marginRight: 10,
+    marginRight: 20,
+    marginTop: 11,
   },
   text: {
     fontSize: 36,

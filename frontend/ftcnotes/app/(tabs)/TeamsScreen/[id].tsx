@@ -268,6 +268,7 @@ export default function TeamsScreen() {
           <TouchableOpacity activeOpacity={0.3} onPress={eventsPage}>
             <Image style={styles.backIcon} source={backIcon} />
           </TouchableOpacity>
+
           <Text
             style={[
               styles.text,
