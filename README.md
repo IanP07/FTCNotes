@@ -3,6 +3,7 @@
 <h2>The best scouting and notetaking app for FTC </h2>
 
 ## Technologies
+
 ![React Native](https://img.shields.io/badge/React%20Native-4FB0D6?style=for-the-badge&logo=react&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-F0DB4F?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
@@ -14,10 +15,11 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-2F6D8C?style=for-the-badge&logo=postgresql&logoColor=white)
 
 ## Showcase
+
 <p float="left">
-  <img src="./readMeImages/eventsPicture" width="245"/>
+  <img src="./readMeImages/eventsPicture.png" width="245"/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readMeImages/teamsPicture" width="245" />
+  <img src="./readMeImages/teamsPicture.png" width="245" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readMeImages/infoPicture" width="245" />
+  <img src="./readMeImages/infoPicture.png" width="245" />
 </p>
