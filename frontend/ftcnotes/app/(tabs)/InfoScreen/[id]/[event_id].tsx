@@ -46,6 +46,18 @@ export default function InfoScreen() {
       .then((data) => {
         setTeam(data);
       });
+
+    // gets highest scores across all teams to compare with current team
+    fetch(`https://inp.pythonanywhere.com/api/info/highest-scores/${event_id}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch highest scores ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setHighestScores(data);
+      });
   };
 
   useEffect(() => {
@@ -61,7 +73,7 @@ export default function InfoScreen() {
   };
 
   const darkTheme = {
-    background: "#232323",
+    background: "#111827",
     textColor: "#EFECD7",
   };
 
@@ -93,6 +105,12 @@ export default function InfoScreen() {
     number: number;
   } | null>(null);
 
+  const [highestScores, setHighestScores] = useState<{
+    auto_score: number;
+    teleop_score: number;
+    endgame_score: number;
+  } | null>(null);
+
   const [showForm, setShowForm] = useState(false); // toggles form visibility
   const [addInfo, setAddInfo] = useState(true); // Initial text on screen
   const [eventID, setEventID] = useState(""); // event_id to return to team_screen
@@ -108,6 +126,7 @@ export default function InfoScreen() {
       method: "POST",
       body: JSON.stringify({
         team_id: id,
+        event_id: event_id,
         auto_score: autoScore,
         teleop_score: teleopScore,
         endgame_score: endgameScore,
@@ -183,51 +202,218 @@ export default function InfoScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         {!addInfo && (
           <View style={{ flex: 1, backgroundColor: theme.background }}>
+            {/* Topbar */}
+            <View style={styles.button}>
+              <Text
+                style={[styles.text, { color: theme.textColor, fontSize: 24 }]}
+              >
+                Team #{team?.number}
+              </Text>
+              <Text style={[styles.smallerText, { color: theme.textColor }]}>
+                Average Score:{" "}
+                {Number(autoScore) + Number(teleopScore) + Number(endgameScore)}{" "}
+                points
+              </Text>
+            </View>
+
             <Text
               style={[
                 styles.text,
-                { paddingTop: 20 },
-                { color: theme.textColor },
+                {
+                  color: theme.textColor,
+                  fontSize: 26,
+                  marginLeft: 20,
+                  marginTop: 35,
+                },
               ]}
             >
-              #{team?.number}
+              Performance Breakdown
             </Text>
+            {/* Auto Score box */}
+            <View style={[styles.button, { alignItems: "center" }]}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                  Autonomous Score:
+                </Text>
+                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                  {autoScore}
+                </Text>
+              </View>
+
+              <View style={styles.outerBar}>
+                <View
+                  style={[
+                    styles.innerBar,
+                    {
+                      // Calculates innerBar width as a % of max score, capped at 100%
+                      width: highestScores?.auto_score
+                        ? `${Math.min(
+                            (Number(autoScore) / highestScores.auto_score) *
+                              100,
+                            100
+                          )}%`
+                        : "0%",
+                    },
+                  ]}
+                ></View>
+              </View>
+
+              <View
+                style={{
+                  marginTop: 5,
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.smallestText}>0</Text>
+                <Text style={styles.smallestText}>
+                  max: {highestScores?.auto_score}
+                </Text>
+              </View>
+            </View>
+
+            {/* Teleop Score box  */}
+            <View style={[styles.button, { alignItems: "center" }]}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                  Teleop Score:
+                </Text>
+                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                  {teleopScore}
+                </Text>
+              </View>
+
+              <View style={styles.outerBar}>
+                <View
+                  style={[
+                    styles.innerBar,
+                    {
+                      // Calculates innerBar width as a % of max score, capped at 100%
+                      width: highestScores?.auto_score
+                        ? `${Math.min(
+                            (Number(teleopScore) / highestScores.teleop_score) *
+                              100,
+                            100
+                          )}%`
+                        : "0%",
+                    },
+                  ]}
+                ></View>
+              </View>
+
+              <View
+                style={{
+                  marginTop: 5,
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.smallestText}>0</Text>
+                <Text style={styles.smallestText}>
+                  max: {highestScores?.teleop_score}
+                </Text>
+              </View>
+            </View>
+
+            {/* Endgame Score box  */}
+            <View style={[styles.button, { alignItems: "center" }]}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                  Endgame Score:
+                </Text>
+                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                  {endgameScore}
+                </Text>
+              </View>
+
+              <View style={styles.outerBar}>
+                <View
+                  style={[
+                    styles.innerBar,
+                    {
+                      // Calculates innerBar width as a % of max score, capped at 100%
+                      width: highestScores?.endgame_score
+                        ? `${Math.min(
+                            (Number(endgameScore) /
+                              highestScores.endgame_score) *
+                              100,
+                            100
+                          )}%`
+                        : "0%",
+                    },
+                  ]}
+                ></View>
+              </View>
+
+              <View
+                style={{
+                  marginTop: 5,
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.smallestText}>0</Text>
+                <Text style={styles.smallestText}>
+                  max: {highestScores?.endgame_score}
+                </Text>
+              </View>
+            </View>
+
+            {/* Notes Section: */}
             <Text
               style={[
                 styles.text,
-                { paddingTop: 150 },
-                { color: theme.textColor },
+                {
+                  color: theme.textColor,
+                  fontSize: 26,
+                  marginLeft: 20,
+                  marginTop: 10,
+                },
               ]}
             >
-              Auto Score: {autoScore}
+              Notes
             </Text>
-            <Text
+            <View
               style={[
-                styles.text,
-                { paddingTop: 20 },
-                { color: theme.textColor },
+                styles.button,
+                { paddingVertical: 10, paddingHorizontal: 10 },
               ]}
             >
-              Teleop Score: {teleopScore}
-            </Text>
-            <Text
-              style={[
-                styles.text,
-                { paddingTop: 20 },
-                { color: theme.textColor },
-              ]}
-            >
-              Endgame Score: {endgameScore}
-            </Text>
-            <Text
-              style={[
-                styles.text,
-                { paddingTop: 20 },
-                { color: theme.textColor },
-              ]}
-            >
-              Notes: {notes}
-            </Text>
+              <Text style={styles.notesText}>{notes}</Text>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -291,9 +477,11 @@ const styles = StyleSheet.create({
   },
 
   container: {
+    display: "flex",
     paddingTop: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
   },
   backIcon: {
     width: 60,
@@ -312,24 +500,43 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 36,
     fontWeight: "bold",
-    textAlign: "center",
+    marginBottom: 15,
   },
-
+  smallerText: {
+    fontSize: 21,
+    fontWeight: "500",
+  },
+  smallestText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "rgb(153, 158, 170)",
+  },
+  notesText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: 500,
+  },
   buttonText: {
     color: "black",
     fontSize: 20,
     fontWeight: "600",
     textAlign: "center",
   },
-
   button: {
-    backgroundColor: "#FACC15",
-    paddingVertical: 25,
-    paddingHorizontal: 50,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
     width: 380,
-    height: 100,
     borderRadius: 10,
-    margin: 4,
+    minHeight: 110,
+    margin: 8,
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    alignSelf: "center",
+    backgroundColor: "rgb(33,40,55)",
+    borderColor: "rgba(255,255,255,0.2)",
+    borderStyle: "solid",
+    borderWidth: 1,
   },
   formContainer: {
     position: "absolute",
@@ -367,5 +574,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
+  },
+  outerBar: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    height: 10,
+    width: 340,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 99,
+    marginTop: 4,
+  },
+  innerBar: {
+    height: "100%",
+    borderRadius: 99,
+    backgroundColor: "rgb(250,200,0)",
   },
 });
