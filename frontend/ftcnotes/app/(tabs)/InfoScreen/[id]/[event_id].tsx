@@ -84,10 +84,7 @@ export default function InfoScreen() {
       ? require("../../../../assets/images/FTCNotesBackIconDark.png")
       : require("../../../../assets/images/FTCNotesBackIconLight.png");
 
-  const plusIcon =
-    colorScheme === "dark"
-      ? require("../../../../assets/images/FTCNotesPlusIconDark.png")
-      : require("../../../../assets/images/FTCNotesPlusIconLight.png");
+  const editIcon = require("../../../../assets/images/editIcon2.png");
 
   const router = useRouter();
   const { id, event_id } = useLocalSearchParams(); // unique id depending on what event you clicked on
@@ -195,7 +192,7 @@ export default function InfoScreen() {
         </View>
 
         <TouchableOpacity activeOpacity={0.3} onPress={eventSetupFunc}>
-          <Image style={styles.plusIcon} source={plusIcon} />
+          <Image style={styles.editIcon} source={editIcon} />
         </TouchableOpacity>
       </View>
 
@@ -203,7 +200,21 @@ export default function InfoScreen() {
         {!addInfo && (
           <View style={{ flex: 1, backgroundColor: theme.background }}>
             {/* Topbar */}
-            <View style={styles.button}>
+            <View
+              style={[
+                styles.button,
+                {
+                  backgroundColor:
+                    colorScheme === "dark"
+                      ? "rgb(33,40,55)"
+                      : "rgb(230,230,230)",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
+            >
               <Text
                 style={[styles.text, { color: theme.textColor, fontSize: 24 }]}
               >
@@ -230,7 +241,20 @@ export default function InfoScreen() {
               Performance Breakdown
             </Text>
             {/* Auto Score box */}
-            <View style={[styles.button, { alignItems: "center" }]}>
+            <View
+              style={[
+                styles.button,
+                {
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
+            >
               <View
                 style={{
                   display: "flex",
@@ -240,10 +264,20 @@ export default function InfoScreen() {
                   alignItems: "center",
                 }}
               >
-                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 18, color: theme.textColor },
+                  ]}
+                >
                   Autonomous Score:
                 </Text>
-                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 20, color: theme.textColor },
+                  ]}
+                >
                   {autoScore}
                 </Text>
               </View>
@@ -261,6 +295,11 @@ export default function InfoScreen() {
                             100
                           )}%`
                         : "0%",
+
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? "rgb(250,200,0)"
+                          : "rgb(230,180,40)",
                     },
                   ]}
                 ></View>
@@ -284,7 +323,20 @@ export default function InfoScreen() {
             </View>
 
             {/* Teleop Score box  */}
-            <View style={[styles.button, { alignItems: "center" }]}>
+            <View
+              style={[
+                styles.button,
+                {
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
+            >
               <View
                 style={{
                   display: "flex",
@@ -294,10 +346,20 @@ export default function InfoScreen() {
                   alignItems: "center",
                 }}
               >
-                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 18, color: theme.textColor },
+                  ]}
+                >
                   Teleop Score:
                 </Text>
-                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 20, color: theme.textColor },
+                  ]}
+                >
                   {teleopScore}
                 </Text>
               </View>
@@ -315,6 +377,11 @@ export default function InfoScreen() {
                             100
                           )}%`
                         : "0%",
+
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? "rgb(250,200,0)"
+                          : "rgb(230,180,40)",
                     },
                   ]}
                 ></View>
@@ -338,7 +405,20 @@ export default function InfoScreen() {
             </View>
 
             {/* Endgame Score box  */}
-            <View style={[styles.button, { alignItems: "center" }]}>
+            <View
+              style={[
+                styles.button,
+                {
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
+            >
               <View
                 style={{
                   display: "flex",
@@ -348,10 +428,20 @@ export default function InfoScreen() {
                   alignItems: "center",
                 }}
               >
-                <Text style={[styles.text, { fontSize: 18, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 18, color: theme.textColor },
+                  ]}
+                >
                   Endgame Score:
                 </Text>
-                <Text style={[styles.text, { fontSize: 20, color: "white" }]}>
+                <Text
+                  style={[
+                    styles.text,
+                    { fontSize: 20, color: theme.textColor },
+                  ]}
+                >
                   {endgameScore}
                 </Text>
               </View>
@@ -370,6 +460,11 @@ export default function InfoScreen() {
                             100
                           )}%`
                         : "0%",
+
+                      backgroundColor:
+                        colorScheme === "dark"
+                          ? "rgb(250,200,0)"
+                          : "rgb(230,180,40)",
                     },
                   ]}
                 ></View>
@@ -409,10 +504,23 @@ export default function InfoScreen() {
             <View
               style={[
                 styles.button,
-                { paddingVertical: 10, paddingHorizontal: 10 },
+                {
+                  paddingVertical: 10,
+                  paddingHorizontal: 10,
+                  alignItems: "flex-start",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+                ,
               ]}
             >
-              <Text style={styles.notesText}>{notes}</Text>
+              <Text style={[styles.notesText, { color: theme.textColor }]}>
+                {notes}
+              </Text>
             </View>
           </View>
         )}
@@ -458,7 +566,16 @@ export default function InfoScreen() {
             value={notes}
             onChangeText={setNotes}
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              {
+                backgroundColor:
+                  colorScheme === "dark" ? "#f0d41a" : "rgb(240, 202, 68)",
+              },
+            ]}
+            onPress={handleAddEvent}
+          >
             <Text style={[styles.buttonText]}>Add Info</Text>
           </TouchableOpacity>
         </View>
@@ -490,12 +607,12 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginTop: 11,
   },
-  plusIcon: {
-    width: 60,
-    height: 60,
+  editIcon: {
+    width: 47,
+    height: 47,
     padding: 10,
-    marginRight: 20,
-    marginTop: 11,
+    marginRight: 25,
+    marginTop: 17,
   },
   text: {
     fontSize: 36,
@@ -512,7 +629,6 @@ const styles = StyleSheet.create({
     color: "rgb(153, 158, 170)",
   },
   notesText: {
-    color: "white",
     fontSize: 15,
     fontWeight: 500,
   },
@@ -588,6 +704,5 @@ const styles = StyleSheet.create({
   innerBar: {
     height: "100%",
     borderRadius: 99,
-    backgroundColor: "rgb(250,200,0)",
   },
 });
