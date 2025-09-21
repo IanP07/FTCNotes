@@ -15,9 +15,9 @@
 
 ## Showcase
 <p float="left">
-  <img src="./readMeImages/eventsPicture" width="245"/>
+  <img src="./readMeImages/eventsPicture.png" width="245"/>
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readMeImages/teamsPicture" width="245" />
+  <img src="./readMeImages/teamsPicture.png" width="245" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="./readMeImages/infoPicture" width="245" />
+  <img src="./readMeImages/infoPicture.png" width="245" />
 </p>
