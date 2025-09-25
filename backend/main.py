@@ -23,6 +23,59 @@ next_team_id = 1
 events = []
 teams = []
 
+
+# USER EVENTS
+
+# Get Users
+@app.route("/api/users", methods=['GET'])
+def get_users():
+    con = get_db_connection()
+    cur = con.cursor()
+
+    cur.execute("""
+        SELECT user_id, name, email, join_status FROM users;
+    """)
+
+    rows = cur.fetchall()
+
+    cur.close()
+    con.close()
+
+    events = []
+    for row in rows:
+        events.append({
+            "user_id": row[0],
+            "name": row[1],
+            "email": row[2],
+            "join_status": row[3],
+        })
+    
+    return jsonify(events), 200
+
+# Create User
+@app.route("/api/create-user", methods=['POST'])
+def create_user():
+    data = request.get_json()
+    con = get_db_connection()
+    cur = con.cursor()
+
+    cur.execute("""
+        INSERT INTO users (user_id, name, email)
+        VALUES (%s, %s, %s);
+    """, (data["user_id"], data["name"], data["email"],))
+
+    con.commit()
+    cur.close()
+    con.close()
+
+    output = {
+        "user_id": data["user_id"],
+        "name": data["name"],
+        "email": data["email"]
+    }
+
+    return jsonify(output), 201
+
 # EVENT ENDPOINTS
 # Get Events
 @app.route("/api/events", methods=['GET'])
