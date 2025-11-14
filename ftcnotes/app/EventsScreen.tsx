@@ -11,6 +11,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { Href, useRouter } from "expo-router";
@@ -19,6 +20,8 @@ import { FlipInEasyX } from "react-native-reanimated";
 import { green, red } from "react-native-reanimated/lib/typescript/Colors";
 
 export default function EventsScreen() {
+  const { user } = useUser();
+
   const [addEventsText, setAddEventsText] = useState(true);
 
   // Grabs all Current events in the Database and saves them to the events state.
@@ -42,7 +45,7 @@ export default function EventsScreen() {
 
       setEvents(eventsWithCounts);
     } catch (error) {
-      console.log("Error fetching events");
+      console.log("Error fetching events", error);
     }
   };
 
@@ -120,6 +123,7 @@ export default function EventsScreen() {
       name: string;
       date: string;
       location: string;
+      organization_id: number;
       teamCount: number;
     }[]
   >([]);
@@ -150,6 +154,7 @@ export default function EventsScreen() {
         name: newEventName,
         date: newEventDate,
         location: newEventLocation,
+        user_id: user?.id,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",

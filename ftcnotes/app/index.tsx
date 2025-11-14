@@ -35,6 +35,45 @@ const HomeScreen = () => {
   useWarmUpBrowser();
 
   const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  // Sends create user request to backend
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) {
+      return;
+    }
+
+    const createUser = async () => {
+      try {
+        const res = await fetch(
+          "https://inp.pythonanywhere.com/api/create-user",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: user.fullName,
+              user_id: user.id,
+              email:
+                user.primaryEmailAddress?.emailAddress ||
+                user.emailAddresses[0]?.emailAddress,
+            }),
+          }
+        );
+
+        if (!res.ok) {
+          console.log("Failed to create user:", await res.text());
+        } else {
+          console.log("User successfully created!");
+        }
+      } catch (error) {
+        console.log("Error: ", error);
+      }
+    };
+
+    createUser();
+  }, [isLoaded, isSignedIn, user]);
 
   const switchPage = () => {
     router.push("/groups");
@@ -57,7 +96,6 @@ const HomeScreen = () => {
   const theme = colorScheme === "dark" ? darkTheme : lightTheme;
 
   const { startSSOFlow } = useSSO();
-  const { isLoaded, isSignedIn } = useUser();
 
   // Redirects users that are already signed in
   useEffect(() => {

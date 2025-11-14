@@ -38,6 +38,42 @@ const CreateGroupsScreen = () => {
     textColor: "#EFECD7",
   };
 
+  const [organizationName, setOrganizationName] = useState("");
+
+  const createOrg = async () => {
+    if (!organizationName.trim()) {
+      Alert.alert("Please enter a group name.");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "https://inp.pythonanywhere.com/api/create-organization",
+        {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          body: JSON.stringify({
+            name: organizationName,
+            owner_id: user?.id,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.log("Failed to create org:", text);
+        Alert.alert("Failed to create organization");
+      } else {
+        Alert.alert("Organization created successfully!");
+        router.replace("/groups"); // 👈 navigates to groups screen
+      }
+    } catch (error) {
+      console.log("error: ", error);
+    }
+  };
+
   const googleIcon = require("../assets/images/googleIcon.svg.png");
 
   const theme = colorScheme === "dark" ? darkTheme : lightTheme;
@@ -78,6 +114,7 @@ const CreateGroupsScreen = () => {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <TextInput
           placeholder="Enter group name"
+          onChangeText={setOrganizationName}
           style={[
             styles.textInput,
             {
@@ -87,13 +124,14 @@ const CreateGroupsScreen = () => {
                 colorScheme === "dark"
                   ? "rgba(255,255,255,0.2)"
                   : "rgba(0,0,0,0.2)",
+              color: theme.textColor,
             },
           ]}
         />
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.3}
-          onPress={switchPage}
+          onPress={createOrg}
         >
           <Text style={[styles.buttonText, { color: "black" }]}>
             Create Group
