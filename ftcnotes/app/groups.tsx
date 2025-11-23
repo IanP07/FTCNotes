@@ -21,6 +21,8 @@ const GroupsScreen = () => {
   const [orgName, setOrgName] = useState(null);
   const [joinCode, setJoinCode] = useState(null);
 
+  const [eventCount, setEventCount] = useState(null);
+
   const { user } = useUser();
 
   // gets user info regarding organization status
@@ -46,9 +48,33 @@ const GroupsScreen = () => {
     getUserInfo();
   }, [user?.id]);
 
+  const leaveGroup = async () => {
+    try {
+      await fetch("https://inp.pythonanywhere.com/api/leave-organization", {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: user?.id,
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      }).then((response) => {
+        console.log("Response Status:", response.status); // logs HTTP response code
+
+        if (response.status == 200) {
+          router.replace("/groups");
+        }
+      });
+    } catch (error) {
+      console.log(`Error leaving group: ${error}`);
+    }
+  };
+
   // gets organization info
   // And checks if user is owner
   useEffect(() => {
+    if (!userOrgID) return;
+
     const getOrgInfo = async () => {
       try {
         const res = await fetch(
@@ -59,7 +85,7 @@ const GroupsScreen = () => {
 
         const data = await res.json();
 
-        if (user?.id === data["user_id"]) {
+        if (user?.id === data["owner_id"]) {
           setIsOrgOwner(true);
         }
 
@@ -72,6 +98,27 @@ const GroupsScreen = () => {
     };
 
     getOrgInfo();
+  }, [userOrgID]);
+
+  // gets event count for organization
+  useEffect(() => {
+    const getEventCount = async () => {
+      try {
+        const res = await fetch(
+          `https://inp.pythonanywhere.com/api/organizations/event-count/${userOrgID}`
+        );
+
+        if (!res.ok)
+          throw new Error(`Failed to get event count: ${res.status}`);
+
+        const data = await res.json();
+        setEventCount(data.length);
+      } catch (error) {
+        console.log("Error fetching event count: ", error);
+      }
+    };
+
+    getEventCount();
   }, [userOrgID]);
 
   const { signOut } = useClerk();
@@ -142,7 +189,9 @@ const GroupsScreen = () => {
             </View>
 
             <View style={styles.memberStatusIcon}>
-              <Text style={{ color: "white", fontWeight: 500 }}>Member</Text>
+              <Text style={{ color: "white", fontWeight: 500 }}>
+                {isOrgOwner ? "Owner" : "Member"}
+              </Text>
             </View>
           </View>
 
@@ -161,7 +210,9 @@ const GroupsScreen = () => {
                 source={require("../assets/images/CalendarIcon.png")}
                 style={{ width: 18, height: 18 }}
               />
-              <Text style={{ fontSize: 15, fontWeight: 600 }}>3 Events</Text>
+              <Text style={{ fontSize: 15, fontWeight: 600 }}>
+                {eventCount} Events
+              </Text>
             </View>
           </View>
 
@@ -184,6 +235,54 @@ const GroupsScreen = () => {
         </View>
 
         {/* Event Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/EventsScreen")} // or whatever you want
+          activeOpacity={0.3}
+        >
+          <View
+            style={[
+              styles.actionButton,
+              {
+                alignItems: "center",
+                backgroundColor:
+                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                borderColor:
+                  colorScheme === "dark"
+                    ? "rgba(255,255,255,0.2)"
+                    : "rgba(0,0,0,0.2)",
+              },
+            ]}
+          >
+            <View style={styles.iconBubble}>
+              <Image
+                source={require("../assets/images/CalendarIcon.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+            <View
+              style={{
+                display: "flex",
+                justifyContent: "flex-start",
+                marginLeft: 10,
+                flex: 1,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: 500 }}>View Events</Text>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
+                {eventCount} Events
+              </Text>
+            </View>
+
+            <View style={{ display: "flex", marginLeft: "auto" }}>
+              <Image
+                source={require("../assets/images/FTCNotesRightArrowGrey.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Admin Dashboard Button */}
         <View
           style={[
             styles.actionButton,
@@ -200,7 +299,7 @@ const GroupsScreen = () => {
         >
           <View style={styles.iconBubble}>
             <Image
-              source={require("../assets/images/CalendarIcon.png")}
+              source={require("../assets/images/FTCNotesgearIcon.png")}
               style={{ width: 24, height: 24 }}
             />
           </View>
@@ -211,48 +310,69 @@ const GroupsScreen = () => {
               marginLeft: 10,
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: 500 }}>View Events</Text>
+            <Text style={{ fontSize: 16, fontWeight: 500 }}>
+              Admin Dashboard
+            </Text>
             <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-              3 Events
+              Manage group & requests
             </Text>
           </View>
 
           <View style={{ display: "flex", marginLeft: "auto" }}>
-            <Text>Why not right?</Text>
+            <Image
+              source={require("../assets/images/FTCNotesRightArrowGrey.png")}
+              style={{ width: 24, height: 24 }}
+            />
           </View>
         </View>
 
-        {/* Admin Dashboard Button */}
-        <View
-          style={[
-            styles.actionButton,
-            {
-              alignItems: "center",
-              backgroundColor:
-                colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-              borderColor:
-                colorScheme === "dark"
-                  ? "rgba(255,255,255,0.2)"
-                  : "rgba(0,0,0,0.2)",
-            },
-          ]}
-        ></View>
-
         {/* Leave Group Button */}
-        <View
-          style={[
-            styles.actionButton,
-            {
-              alignItems: "center",
-              backgroundColor:
-                colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-              borderColor:
-                colorScheme === "dark"
-                  ? "rgba(255,255,255,0.2)"
-                  : "rgba(0,0,0,0.2)",
-            },
-          ]}
-        ></View>
+        <TouchableOpacity
+          onPress={leaveGroup} // or whatever you want
+          activeOpacity={0.3}
+        >
+          <View
+            style={[
+              styles.actionButton,
+              {
+                alignItems: "center",
+                backgroundColor:
+                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                borderColor:
+                  colorScheme === "dark"
+                    ? "rgba(255,255,255,0.2)"
+                    : "rgba(0,0,0,0.2)",
+              },
+            ]}
+          >
+            <View style={[styles.iconBubble, { backgroundColor: "#E06161" }]}>
+              <Image
+                source={require("../assets/images/FTCNoteslogoutIcon.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+            <View
+              style={{
+                display: "flex",
+                justifyContent: "flex-start",
+                marginLeft: 10,
+                flex: 1,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: 500 }}>Leave Group</Text>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
+                Leave {orgName}
+              </Text>
+            </View>
+
+            <View style={{ display: "flex", marginLeft: "auto" }}>
+              <Image
+                source={require("../assets/images/FTCNotesRightArrowGrey.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
     );
   }
