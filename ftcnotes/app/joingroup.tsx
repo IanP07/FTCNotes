@@ -15,6 +15,8 @@ import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useClerk } from "@clerk/clerk-expo";
 
+import { VerificationCodeInput } from "@/components/join-group-box";
+
 const JoinGroupsScreen = () => {
   const { getToken, userId, isSignedIn } = useAuth();
   const { user } = useUser();
@@ -39,6 +41,7 @@ const JoinGroupsScreen = () => {
   };
 
   const [organizationName, setOrganizationName] = useState("");
+  const [verificationCode, setVerificationCode] = useState<string>("");
 
   const createOrg = async () => {
     if (!organizationName.trim()) {
@@ -136,26 +139,28 @@ const JoinGroupsScreen = () => {
           Your group owner will then be able to accept your request on their
           device
         </Text>
-        <TextInput
-          placeholder="Enter group name"
-          onChangeText={setOrganizationName}
-          style={[
-            styles.textInput,
-            {
-              backgroundColor:
-                colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-              borderColor:
-                colorScheme === "dark"
-                  ? "rgba(255,255,255,0.2)"
-                  : "rgba(0,0,0,0.2)",
-              color: theme.textColor,
-            },
-          ]}
-        />
+        <VerificationCodeInput onCodeFilled={setVerificationCode} />
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.3}
-          onPress={createOrg}
+          onPress={() => {
+            fetch(
+              "https://inp.pythonanywhere.com/api/organizations/request-join",
+              {
+                method: "POST",
+                body: JSON.stringify({
+                  user_id: user?.id,
+                  join_code: verificationCode,
+                }),
+                headers: {
+                  "Content-type": "application/json; charset=UTF-8",
+                },
+              }
+            ).then((response) => {
+              console.log("Response Status:", response.status); // logs HTTP response code
+              return response.text();
+            });
+          }}
         >
           <Text style={[styles.buttonText, { color: "black" }]}>Submit</Text>
         </TouchableOpacity>
