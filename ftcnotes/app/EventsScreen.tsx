@@ -23,31 +23,7 @@ export default function EventsScreen() {
   const { user } = useUser();
 
   const [addEventsText, setAddEventsText] = useState(true);
-
-  // Grabs all Current events in the Database and saves them to the events state.
-  const fetchEvents = async () => {
-    try {
-      const res = await fetch("https://inp.pythonanywhere.com/api/events");
-      if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
-      const data = await res.json();
-
-      const eventsWithCounts = await Promise.all(
-        data.map(async (event: { id: number }) => {
-          const countRes = await fetch(
-            `https://inp.pythonanywhere.com/api/team-amount/${event.id}`
-          );
-          if (!countRes.ok)
-            throw new Error(`Failed to fetch team count: ${countRes.status}`);
-          const countData = await countRes.json();
-          return { ...event, teamCount: countData["team-amount"] }; // adds count to data
-        })
-      );
-
-      setEvents(eventsWithCounts);
-    } catch (error) {
-      console.log("Error fetching events", error);
-    }
-  };
+  const [userOrgID, setUserOrgID] = useState("");
 
   const compareDates = (eventDateStr: string) => {
     const currentDate = new Date();
@@ -75,10 +51,59 @@ export default function EventsScreen() {
     Unknown: "#000000",
   };
 
-  // Calls fetchEvents function upon page load
+  // gets user info regarding organization status
   useEffect(() => {
+    if (!user?.id) return;
+
+    const getUserInfo = async () => {
+      try {
+        const res = await fetch(
+          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+        );
+
+        if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
+
+        const data = await res.json();
+        setUserOrgID(data.organization_id);
+      } catch (error) {
+        console.log("Error getting user info: ", error);
+      }
+    };
+
+    getUserInfo();
+  }, [user?.id]);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await fetch(
+        `https://inp.pythonanywhere.com/api/events-for-organization/${userOrgID}`
+      );
+      if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
+      const data = await res.json();
+
+      const eventsWithCounts = await Promise.all(
+        data.map(async (event: { id: number }) => {
+          const countRes = await fetch(
+            `https://inp.pythonanywhere.com/api/team-amount/${event.id}`
+          );
+          if (!countRes.ok)
+            throw new Error(`Failed to fetch team count: ${countRes.status}`);
+          const countData = await countRes.json();
+          return { ...event, teamCount: countData["team-amount"] }; // adds count to data
+        })
+      );
+
+      setEvents(eventsWithCounts);
+    } catch (error) {
+      console.log("Error fetching events", error);
+    }
+  };
+
+  // Grabs all Current events in the Database and saves them to the events state.
+  useEffect(() => {
+    if (!userOrgID) return;
     fetchEvents();
-  }, []);
+  }, [userOrgID]);
 
   const colorScheme = useColorScheme(); // accesses users current system color scheme
 

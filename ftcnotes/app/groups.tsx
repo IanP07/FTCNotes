@@ -149,7 +149,7 @@ const GroupsScreen = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push("/EventsScreen")}
+          onPress={() => router.push("/joingroup")}
         >
           <Text style={styles.buttonText}>Join Group</Text>
         </TouchableOpacity>
@@ -163,7 +163,7 @@ const GroupsScreen = () => {
         <View
           style={[
             styles.eventCard,
-            { borderWidth: colorScheme === "light" ? 1 : 0 },
+            { borderWidth: colorScheme === "light" ? 1 : 1 },
           ]}
         >
           <View
@@ -178,7 +178,7 @@ const GroupsScreen = () => {
             <View style={{ flex: 1, flexShrink: 1 }}>
               <Text
                 style={{
-                  color: theme.textColor,
+                  color: "black",
                   fontSize: 18,
                   fontWeight: 500,
                 }}
@@ -267,7 +267,15 @@ const GroupsScreen = () => {
                 flex: 1,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: 500 }}>View Events</Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: theme.textColor,
+                }}
+              >
+                View Events
+              </Text>
               <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
                 {eventCount} Events
               </Text>
@@ -310,7 +318,9 @@ const GroupsScreen = () => {
               marginLeft: 10,
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: 500 }}>
+            <Text
+              style={{ fontSize: 16, fontWeight: 500, color: theme.textColor }}
+            >
               Admin Dashboard
             </Text>
             <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
@@ -359,7 +369,15 @@ const GroupsScreen = () => {
                 flex: 1,
               }}
             >
-              <Text style={{ fontSize: 16, fontWeight: 500 }}>Leave Group</Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: theme.textColor,
+                }}
+              >
+                Leave Group
+              </Text>
               <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
                 Leave {orgName}
               </Text>
