@@ -131,7 +131,7 @@ const GroupsScreen = () => {
       : { background: "#F3F3F3", textColor: "#000000" };
 
   let content;
-  if (userOrgID === null && userJoinStatus !== "approved") {
+  if (userOrgID === null || userJoinStatus !== "approved") {
     content = (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={{ width: "90%", marginBottom: 25 }}>
