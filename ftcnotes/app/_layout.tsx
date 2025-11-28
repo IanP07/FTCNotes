@@ -19,6 +19,9 @@ export default function RootLayout() {
         <Stack.Screen name="creategroup" />
         <Stack.Screen name="EventsScreen" />
         <Stack.Screen name="joingroup" />
+        <Stack.Screen name="admindashboard" />
+        <Stack.Screen name="dashboardmembers" />
+        <Stack.Screen name="dashboardpending" />
         <Stack.Screen name="TeamsScreen/[id]" />
         <Stack.Screen name="InfoScreen/[id]/[event_id]" />
       </Stack>

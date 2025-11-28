@@ -184,7 +184,6 @@ const GroupsScreen = () => {
                 }}
               >
                 {orgName}
-                {/* {joinCode} */}
               </Text>
             </View>
 
@@ -291,50 +290,59 @@ const GroupsScreen = () => {
         </TouchableOpacity>
 
         {/* Admin Dashboard Button */}
-        <View
-          style={[
-            styles.actionButton,
-            {
-              alignItems: "center",
-              backgroundColor:
-                colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-              borderColor:
-                colorScheme === "dark"
-                  ? "rgba(255,255,255,0.2)"
-                  : "rgba(0,0,0,0.2)",
-            },
-          ]}
+        <TouchableOpacity
+          onPress={() => router.push("/admindashboard")} // or whatever you want
+          activeOpacity={0.3}
         >
-          <View style={styles.iconBubble}>
-            <Image
-              source={require("../assets/images/FTCNotesgearIcon.png")}
-              style={{ width: 24, height: 24 }}
-            />
-          </View>
           <View
-            style={{
-              display: "flex",
-              justifyContent: "flex-start",
-              marginLeft: 10,
-            }}
+            style={[
+              styles.actionButton,
+              {
+                alignItems: "center",
+                backgroundColor:
+                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                borderColor:
+                  colorScheme === "dark"
+                    ? "rgba(255,255,255,0.2)"
+                    : "rgba(0,0,0,0.2)",
+              },
+            ]}
           >
-            <Text
-              style={{ fontSize: 16, fontWeight: 500, color: theme.textColor }}
+            <View style={styles.iconBubble}>
+              <Image
+                source={require("../assets/images/FTCNotesgearIcon.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
+            <View
+              style={{
+                display: "flex",
+                justifyContent: "flex-start",
+                marginLeft: 10,
+              }}
             >
-              Admin Dashboard
-            </Text>
-            <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-              Manage group & requests
-            </Text>
-          </View>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: theme.textColor,
+                }}
+              >
+                Admin Dashboard
+              </Text>
+              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
+                Manage group & requests
+              </Text>
+            </View>
 
-          <View style={{ display: "flex", marginLeft: "auto" }}>
-            <Image
-              source={require("../assets/images/FTCNotesRightArrowGrey.png")}
-              style={{ width: 24, height: 24 }}
-            />
+            <View style={{ display: "flex", marginLeft: "auto" }}>
+              <Image
+                source={require("../assets/images/FTCNotesRightArrowGrey.png")}
+                style={{ width: 24, height: 24 }}
+              />
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Leave Group Button */}
         <TouchableOpacity
