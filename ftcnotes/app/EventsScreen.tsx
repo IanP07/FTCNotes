@@ -120,15 +120,15 @@ export default function EventsScreen() {
 
   const theme = colorScheme === "dark" ? darkTheme : lightTheme;
 
-  const homeIcon =
-    colorScheme === "dark"
-      ? require("../assets/images/FTCNotesHomeIconDark.png")
-      : require("../assets/images/FTCNotesHomeIconLight.png");
-
   const plusIcon =
     colorScheme === "dark"
       ? require("../assets/images/FTCNotesPlusIconDark.png")
       : require("../assets/images/FTCNotesPlusIconLight.png");
+
+  const backIcon =
+    colorScheme === "dark"
+      ? require("../assets/images/FTCNotesBackIconDark.png")
+      : require("../assets/images/FTCNotesBackIconLight.png");
 
   const router = useRouter();
 
@@ -234,19 +234,23 @@ export default function EventsScreen() {
           style={{
             display: "flex",
             flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
           }}
         >
-          <TouchableOpacity activeOpacity={0.3} onPress={homePage}>
-            <Image style={styles.homeIcon} source={homeIcon} />
+          <TouchableOpacity
+            activeOpacity={0.3}
+            onPress={() => router.push("/groups")}
+          >
+            <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>
           <Text
             style={[
               styles.text,
-              { paddingTop: 20 },
-              { color: theme.textColor },
+              { color: theme.textColor, fontSize: 30, fontWeight: "600" },
             ]}
           >
-            Events
+            Groups
           </Text>
         </View>
 
@@ -256,7 +260,7 @@ export default function EventsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.headerText}>Screaming Eagles</Text>
+        <Text style={styles.headerText}>Event List</Text>
 
         <View style={styles.line}></View>
 
@@ -388,12 +392,12 @@ export default function EventsScreen() {
 
 const styles = StyleSheet.create({
   topBar: {
-    paddingTop: 60,
-    marginBottom: 8,
-    justifyContent: "space-between",
     flexDirection: "row",
     width: "100%",
-    height: "15%",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 70,
   },
   container: {
     paddingTop: 1,
@@ -408,11 +412,8 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   plusIcon: {
-    width: 60,
-    height: 60,
-    padding: 10,
-    marginRight: 20,
-    marginTop: 11,
+    width: 40,
+    height: 40,
   },
   deleteButtonWrapper: {
     display: "flex",
@@ -456,6 +457,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontWeight: "700",
     marginBottom: 5,
+    marginTop: 15,
     fontSize: 22,
     color: "#cfa323",
   },

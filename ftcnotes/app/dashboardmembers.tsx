@@ -23,6 +23,11 @@ const dashboardMembersScreen = () => {
       ? { background: "#111827", textColor: "#EFECD7" }
       : { background: "#F3F3F3", textColor: "#000000" };
 
+  const backIcon =
+    colorScheme === "dark"
+      ? require("../assets/images/FTCNotesBackIconDark.png")
+      : require("../assets/images/FTCNotesBackIconLight.png");
+
   const [memberCount, setMemberCount] = useState(null);
   const [orgName, setOrgName] = useState(null);
   const [joinCode, setJoinCode] = useState(null);
@@ -107,14 +112,29 @@ const dashboardMembersScreen = () => {
       }}
     >
       <View style={styles.topbar}>
-        <Text
-          style={[
-            styles.text,
-            { color: theme.textColor, fontSize: 30, fontWeight: "600" },
-          ]}
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 8,
+            alignItems: "center",
+          }}
         >
-          My Group
-        </Text>
+          <TouchableOpacity
+            activeOpacity={0.3}
+            onPress={() => router.push("/groups")}
+          >
+            <Image style={{ height: 40, width: 40 }} source={backIcon} />
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.text,
+              { color: theme.textColor, fontSize: 30, fontWeight: "600" },
+            ]}
+          >
+            Groups
+          </Text>
+        </View>
 
         <TouchableOpacity
           onPress={async () => {
@@ -217,7 +237,6 @@ const dashboardMembersScreen = () => {
               },
             ]}
           >
-            <View style={styles.iconBubble}></View>
             <View
               style={{
                 display: "flex",
@@ -279,8 +298,8 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: 50,
-    width: 50,
+    height: 40,
+    width: 40,
     backgroundColor: "#FFC30D",
     borderRadius: 99,
   },

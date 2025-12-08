@@ -23,6 +23,112 @@ const dashboardPendingScreen = () => {
       ? { background: "#111827", textColor: "#EFECD7" }
       : { background: "#F3F3F3", textColor: "#000000" };
 
+  const backIcon =
+    colorScheme === "dark"
+      ? require("../assets/images/FTCNotesBackIconDark.png")
+      : require("../assets/images/FTCNotesBackIconLight.png");
+
+  const [pendingMembers, setPendingMembers] = useState<
+    {
+      email: string;
+      name: string;
+      user_id: string;
+    }[]
+  >([]);
+
+  const [orgID, setOrgID] = useState("");
+
+  const denyRequest = async (user_id: string) => {
+    fetch("https://inp.pythonanywhere.com/api/organizations/deny-request", {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: user_id,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          console.log("Success!");
+        } else {
+          console.log(response.status);
+        }
+      })
+      .catch((error) => {
+        console.log(`error denying join request: ${error}`);
+      });
+  };
+
+  const approveRequest = async (user_id: string) => {
+    fetch("https://inp.pythonanywhere.com/api/organizations/approve-request", {
+      method: "POST",
+      body: JSON.stringify({
+        user_id: user_id,
+        organization_id: orgID,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          console.log("Success!");
+        } else {
+          console.log(response.status);
+        }
+      })
+      .catch((error) => {
+        console.log(`error approving join request: ${error}`);
+      });
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const getOrgID = async () => {
+      try {
+        const res = await fetch(
+          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to get org ID: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        setOrgID(data.organization_id);
+      } catch (error) {
+        console.log(`Error fetching org ID: ${error}`);
+      }
+    };
+
+    getOrgID();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchPendingMembers = async () => {
+      try {
+        const res = await fetch(
+          `https://inp.pythonanywhere.com/api/organizations/pending-requests?owner_id=${user?.id}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch pending members: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setPendingMembers(data.pending_requests);
+      } catch (error) {
+        console.log(`Error calling endpoint: ${error}`);
+      }
+    };
+    fetchPendingMembers();
+  }, [user?.id, denyRequest, approveRequest]);
+
   return (
     <View
       style={{
@@ -32,14 +138,29 @@ const dashboardPendingScreen = () => {
       }}
     >
       <View style={styles.topbar}>
-        <Text
-          style={[
-            styles.text,
-            { color: theme.textColor, fontSize: 30, fontWeight: "600" },
-          ]}
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
         >
-          My Group
-        </Text>
+          <TouchableOpacity
+            activeOpacity={0.3}
+            onPress={() => router.push("/groups")}
+          >
+            <Image style={{ height: 40, width: 40 }} source={backIcon} />
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.text,
+              { color: theme.textColor, fontSize: 30, fontWeight: "600" },
+            ]}
+          >
+            Groups
+          </Text>
+        </View>
 
         <TouchableOpacity
           onPress={async () => {
@@ -74,252 +195,70 @@ const dashboardPendingScreen = () => {
 
         {/* pending member bubbles */}
         <ScrollView>
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            <View style={styles.iconBubble}></View>
+          {pendingMembers.map((member, index) => (
             <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
+              key={index}
+              style={[
+                styles.bubble,
+                {
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
             >
-              <Text
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginLeft: 10,
+                  flex: 1,
                 }}
               >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: theme.textColor,
+                  }}
+                >
+                  {member.name}
+                </Text>
+                <Text
+                  style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                >
+                  {member.email}
+                </Text>
+              </View>
 
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.greenBubbleBackground}></View>
-              <View style={styles.redBubbleBackground}></View>
-            </View>
-          </View>
-
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            <View style={styles.iconBubble}></View>
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
-            >
-              <Text
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
+                  display: "flex",
+                  marginLeft: "auto",
+                  flexDirection: "row",
+                  gap: 20,
                 }}
               >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
+                <TouchableOpacity
+                  onPress={() => approveRequest(member.user_id)}
+                >
+                  <View style={styles.greenBubbleBackground}></View>
+                </TouchableOpacity>
 
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.greenBubbleBackground}></View>
-              <View style={styles.redBubbleBackground}></View>
+                <TouchableOpacity
+                  onPress={() => {
+                    denyRequest(member.user_id);
+                  }}
+                >
+                  <View style={styles.redBubbleBackground}></View>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            <View style={styles.iconBubble}></View>
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
-                }}
-              >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
-
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.greenBubbleBackground}></View>
-              <View style={styles.redBubbleBackground}></View>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            <View style={styles.iconBubble}></View>
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
-                }}
-              >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
-
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.greenBubbleBackground}></View>
-              <View style={styles.redBubbleBackground}></View>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            <View style={styles.iconBubble}></View>
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
-                }}
-              >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
-
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.greenBubbleBackground}></View>
-              <View style={styles.redBubbleBackground}></View>
-            </View>
-          </View>
+          ))}
         </ScrollView>
       </View>
     </View>

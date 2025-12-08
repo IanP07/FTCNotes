@@ -179,7 +179,7 @@ const HomeScreen = () => {
           ,
         ]}
         activeOpacity={0.3}
-        onPress={switchPage}
+        onPress={onPress}
       >
         <Image style={{ width: 40, height: 40 }} source={googleIcon}></Image>
         <Text style={[styles.buttonText, { color: theme.textColor }]}>

@@ -158,6 +158,14 @@ const JoinGroupsScreen = () => {
               }
             ).then((response) => {
               console.log("Response Status:", response.status); // logs HTTP response code
+
+              if (response.status === 200) {
+                Alert.alert(
+                  "Successfully submitted request! Have your owner approve it to join"
+                );
+              } else {
+                Alert.alert("No matching join codes found");
+              }
               return response.text();
             });
           }}

@@ -23,6 +23,11 @@ const AdminDashboardScreen = () => {
       ? { background: "#111827", textColor: "#EFECD7" }
       : { background: "#F3F3F3", textColor: "#000000" };
 
+  const backIcon =
+    colorScheme === "dark"
+      ? require("../assets/images/FTCNotesBackIconDark.png")
+      : require("../assets/images/FTCNotesBackIconLight.png");
+
   return (
     <View
       style={{
@@ -32,14 +37,29 @@ const AdminDashboardScreen = () => {
       }}
     >
       <View style={styles.topbar}>
-        <Text
-          style={[
-            styles.text,
-            { color: theme.textColor, fontSize: 30, fontWeight: "600" },
-          ]}
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 8,
+            alignItems: "center",
+          }}
         >
-          My Group
-        </Text>
+          <TouchableOpacity
+            activeOpacity={0.3}
+            onPress={() => router.push("/groups")}
+          >
+            <Image style={{ height: 40, width: 40 }} source={backIcon} />
+          </TouchableOpacity>
+          <Text
+            style={[
+              styles.text,
+              { color: theme.textColor, fontSize: 30, fontWeight: "600" },
+            ]}
+          >
+            Groups
+          </Text>
+        </View>
 
         <TouchableOpacity
           onPress={async () => {
