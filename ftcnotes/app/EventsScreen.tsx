@@ -18,12 +18,16 @@ import { Href, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { FlipInEasyX } from "react-native-reanimated";
 import { green, red } from "react-native-reanimated/lib/typescript/Colors";
+import DeleteConfirmationModal from "../components/ui/deleteEventModal";
 
 export default function EventsScreen() {
   const { user } = useUser();
 
   const [addEventsText, setAddEventsText] = useState(true);
   const [userOrgID, setUserOrgID] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<number | null>(null);
 
   const compareDates = (eventDateStr: string) => {
     const currentDate = new Date();
@@ -209,17 +213,34 @@ export default function EventsScreen() {
   };
 
   const handleDeleteEvent = (eventId: number) => {
-    fetch(`https://inp.pythonanywhere.com/api/delete-event/${eventId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((data) => {
-        console.log("Event deleted:", data);
-        fetchEvents(); // refresh list
-      })
-      .catch((err) => console.error("Error deleting event:", err));
+    setEventToDelete(eventId); // Set the team to delete
+    setShowDeleteModal(true); // Show the confirmation modal
+  };
+
+  const confirmDelete = () => {
+    if (eventToDelete !== null) {
+      fetch(
+        `https://inp.pythonanywhere.com/api/delete-event/${eventToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+        .then((data) => {
+          console.log("Event deleted:", data);
+          fetchEvents(); // refresh list
+        })
+        .catch((err) => console.error("Error deleting event:", err));
+    }
+    setShowDeleteModal(false); // Close the modal after confirming
+    setEventToDelete(null); // Reset the team to delete
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false); // Close the modal without deleting
+    setEventToDelete(null); // Reset the team to delete
   };
 
   const eventSetupFunc = () => {
@@ -346,6 +367,16 @@ export default function EventsScreen() {
           </View>
         ))}
       </ScrollView>
+
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          visible={showDeleteModal}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          onClose={cancelDelete}
+        />
+      )}
+
       {addEventsText && (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>

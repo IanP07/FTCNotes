@@ -13,9 +13,13 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams, Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import DeleteConfirmationModal from "../../components/ui/deleteTeamModal";
 
 export default function TeamsScreen() {
   const { id } = useLocalSearchParams(); // unique id depending on what event you clicked on
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<number | null>(null);
 
   const colorScheme = useColorScheme(); // accesses users current system color scheme
   const lightTheme = {
@@ -235,18 +239,32 @@ export default function TeamsScreen() {
     setNewTeamNumber(""); // Clears the number input
   };
 
-  const handleDeleteTeam = (eventId: number) => {
-    fetch(`https://inp.pythonanywhere.com/api/delete-team/${eventId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((data) => {
-        console.log("Event deleted:", data);
-        fetchTeams(); // refresh list
+  const handleDeleteTeam = (teamId: number) => {
+    setTeamToDelete(teamId); // Set the team to delete
+    setShowDeleteModal(true); // Show the confirmation modal
+  };
+
+  const confirmDelete = () => {
+    if (teamToDelete !== null) {
+      fetch(`https://inp.pythonanywhere.com/api/delete-team/${teamToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
-      .catch((err) => console.error("Error deleting event:", err));
+        .then((data) => {
+          console.log("Event deleted:", data);
+          fetchTeams(); // refresh list
+        })
+        .catch((err) => console.error("Error deleting event:", err));
+    }
+    setShowDeleteModal(false); // Close the modal after confirming
+    setTeamToDelete(null); // Reset the team to delete
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false); // Close the modal without deleting
+    setTeamToDelete(null); // Reset the team to delete
   };
 
   const eventSetupFunc = () => {
@@ -346,6 +364,16 @@ export default function TeamsScreen() {
           </View>
         ))}
       </ScrollView>
+
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          visible={showDeleteModal}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          onClose={cancelDelete}
+        />
+      )}
+
       {addTeamText && (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
