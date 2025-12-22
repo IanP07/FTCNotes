@@ -194,7 +194,11 @@ const GroupsScreen = () => {
               </Text>
             </View>
 
-            <View style={styles.memberStatusIcon}>
+            <View
+              style={
+                isOrgOwner ? styles.ownerStatusIcon : styles.memberStatusIcon
+              }
+            >
               <Text style={{ color: "white", fontWeight: 500 }}>
                 {isOrgOwner ? "Owner" : "Member"}
               </Text>
@@ -297,59 +301,63 @@ const GroupsScreen = () => {
         </TouchableOpacity>
 
         {/* Admin Dashboard Button */}
-        <TouchableOpacity
-          onPress={() => router.push("/admindashboard")} // or whatever you want
-          activeOpacity={0.3}
-        >
-          <View
-            style={[
-              styles.actionButton,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
+        {isOrgOwner && (
+          <TouchableOpacity
+            onPress={() => router.push("/admindashboard")} // or whatever you want
+            activeOpacity={0.3}
           >
-            <View style={styles.iconBubble}>
-              <Image
-                source={require("../assets/images/FTCNotesgearIcon.png")}
-                style={{ width: 24, height: 24 }}
-              />
-            </View>
             <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-              }}
+              style={[
+                styles.actionButton,
+                {
+                  alignItems: "center",
+                  backgroundColor:
+                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor:
+                    colorScheme === "dark"
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(0,0,0,0.2)",
+                },
+              ]}
             >
-              <Text
+              <View style={styles.iconBubble}>
+                <Image
+                  source={require("../assets/images/FTCNotesgearIcon.png")}
+                  style={{ width: 24, height: 24 }}
+                />
+              </View>
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginLeft: 10,
                 }}
               >
-                Admin Dashboard
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                Manage group & requests
-              </Text>
-            </View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: theme.textColor,
+                  }}
+                >
+                  Admin Dashboard
+                </Text>
+                <Text
+                  style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                >
+                  Manage group & requests
+                </Text>
+              </View>
 
-            <View style={{ display: "flex", marginLeft: "auto" }}>
-              <Image
-                source={require("../assets/images/FTCNotesRightArrowGrey.png")}
-                style={{ width: 24, height: 24 }}
-              />
+              <View style={{ display: "flex", marginLeft: "auto" }}>
+                <Image
+                  source={require("../assets/images/FTCNotesRightArrowGrey.png")}
+                  style={{ width: 24, height: 24 }}
+                />
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        )}
 
         {/* Leave Group Button */}
         <TouchableOpacity onPress={handleLeaveGroup} activeOpacity={0.3}>
@@ -534,13 +542,24 @@ const styles = StyleSheet.create({
     margin: 8,
     borderColor: "#dea300",
   },
-  memberStatusIcon: {
+  ownerStatusIcon: {
     paddingTop: 3,
     paddingBottom: 3,
     paddingLeft: 10,
     paddingRight: 10,
     borderRadius: 32,
     backgroundColor: "#c91616ff",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  memberStatusIcon: {
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: 32,
+    backgroundColor: "#155c9fff",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
