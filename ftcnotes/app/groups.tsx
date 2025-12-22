@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import LeaveConfirmationModal from "../components/ui/leaveGroupModal";
 
 const GroupsScreen = () => {
   const [userOrgID, setUserOrgID] = useState<number | null>(null);
@@ -22,6 +23,8 @@ const GroupsScreen = () => {
   const [joinCode, setJoinCode] = useState(null);
 
   const [eventCount, setEventCount] = useState(null);
+
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const { user } = useUser();
 
@@ -47,6 +50,10 @@ const GroupsScreen = () => {
 
     getUserInfo();
   }, [user?.id]);
+
+  const handleLeaveGroup = () => {
+    setShowLeaveModal(true);
+  };
 
   const leaveGroup = async () => {
     try {
@@ -345,10 +352,7 @@ const GroupsScreen = () => {
         </TouchableOpacity>
 
         {/* Leave Group Button */}
-        <TouchableOpacity
-          onPress={leaveGroup} // or whatever you want
-          activeOpacity={0.3}
-        >
+        <TouchableOpacity onPress={handleLeaveGroup} activeOpacity={0.3}>
           <View
             style={[
               styles.actionButton,
@@ -399,6 +403,15 @@ const GroupsScreen = () => {
             </View>
           </View>
         </TouchableOpacity>
+
+        {showLeaveModal && (
+          <LeaveConfirmationModal
+            visible={showLeaveModal}
+            onConfirm={leaveGroup}
+            onCancel={() => setShowLeaveModal(false)}
+            onClose={() => setShowLeaveModal(false)}
+          />
+        )}
       </View>
     );
   }
