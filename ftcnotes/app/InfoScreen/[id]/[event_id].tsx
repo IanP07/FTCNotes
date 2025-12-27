@@ -538,7 +538,7 @@ export default function InfoScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%" }}
+          style={{ width: "100%", display: "flex", alignItems: "center" }}
         >
           <TextInput
             placeholder="Enter auto score"
@@ -546,6 +546,7 @@ export default function InfoScreen() {
             style={[styles.input, { color: theme.textColor }]}
             value={autoScore}
             onChangeText={setAutoScore}
+            keyboardType="numeric"
           />
           <TextInput
             placeholder="Enter teleop score"
@@ -553,6 +554,7 @@ export default function InfoScreen() {
             style={[styles.input, { color: theme.textColor }]}
             value={teleopScore}
             onChangeText={setTeleopScore}
+            keyboardType="numeric"
           />
           <TextInput
             placeholder="Enter endgame score"
@@ -560,6 +562,7 @@ export default function InfoScreen() {
             style={[styles.input, { color: theme.textColor }]}
             value={endgameScore}
             onChangeText={setEndgameScore}
+            keyboardType="numeric"
           />
           <TextInput
             placeholder="Enter notes"
@@ -568,16 +571,7 @@ export default function InfoScreen() {
             value={notes}
             onChangeText={setNotes}
           />
-          <TouchableOpacity
-            style={[
-              styles.addButton,
-              {
-                backgroundColor:
-                  colorScheme === "dark" ? "#f0d41a" : "rgb(240, 202, 68)",
-              },
-            ]}
-            onPress={handleAddEvent}
-          >
+          <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
             <Text style={[styles.buttonText]}>Add Info</Text>
           </TouchableOpacity>
         </KeyboardAvoidingView>
@@ -675,6 +669,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
+    width: "93%",
   },
   input: {
     borderWidth: 1,
@@ -682,6 +677,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    width: "93%",
   },
   centeredTextContainer: {
     flex: 1,

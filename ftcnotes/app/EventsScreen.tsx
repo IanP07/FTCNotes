@@ -389,7 +389,7 @@ export default function EventsScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%" }}
+          style={{ width: "100%", display: "flex", alignItems: "center" }}
         >
           <TextInput
             placeholder="Enter event name"
@@ -404,6 +404,7 @@ export default function EventsScreen() {
             style={[styles.input, { color: theme.textColor }]}
             value={newEventDate}
             onChangeText={setNewEventDate} // stores text data in the newEventName state
+            keyboardType="numeric"
           />
           <TextInput
             placeholder="Enter location"
@@ -550,6 +551,7 @@ const styles = StyleSheet.create({
     display: "flex",
     backgroundColor: "rgb(250,200,0)",
     padding: 15,
+    width: "93%",
     borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
@@ -560,7 +562,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    width: "100%",
+    width: "93%",
   },
   centeredTextContainer: {
     flex: 1,

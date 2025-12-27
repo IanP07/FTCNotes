@@ -386,7 +386,7 @@ export default function TeamsScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%" }}
+          style={{ width: "100%", display: "flex", alignItems: "center" }}
         >
           <TextInput
             placeholder="Enter team name"
@@ -401,6 +401,7 @@ export default function TeamsScreen() {
             style={[styles.input, { color: theme.textColor }]}
             value={newTeamNumber}
             onChangeText={setNewTeamNumber}
+            keyboardType="numeric"
           />
           <TouchableOpacity style={styles.addButton} onPress={handleAddTeam}>
             <Text style={styles.buttonText}>Add Team</Text>
@@ -562,6 +563,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
+    width: "93%",
   },
   input: {
     borderWidth: 1,
@@ -569,6 +571,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    width: "93%",
   },
   centeredTextContainer: {
     flex: 1,

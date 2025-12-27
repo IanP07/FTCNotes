@@ -148,7 +148,7 @@ const dashboardPendingScreen = () => {
         >
           <TouchableOpacity
             activeOpacity={0.3}
-            onPress={() => router.push("/groups")}
+            onPress={() => router.push("/admindashboard")}
           >
             <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>
@@ -158,7 +158,7 @@ const dashboardPendingScreen = () => {
               { color: theme.textColor, fontSize: 30, fontWeight: "600" },
             ]}
           >
-            Groups
+            Dashboard
           </Text>
         </View>
 
