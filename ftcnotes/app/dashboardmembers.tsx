@@ -38,8 +38,28 @@ const dashboardMembersScreen = () => {
     {
       email: string;
       name: string;
+      user_id: string;
     }[]
   >([]);
+
+  const kickMember = async (kickedMemberID: string) => {
+    try {
+      const res = await fetch(`https://inp.pythonanywhere.com/api/kick-user`, {
+        method: "POST",
+        body: JSON.stringify({
+          user_id: kickedMemberID,
+          org_id: userOrgID,
+        }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+      });
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      console.log(`Error kicking member ${error}`);
+    }
+  };
 
   useEffect(() => {
     if (!user?.id) return;
@@ -90,7 +110,7 @@ const dashboardMembersScreen = () => {
       }
     };
     fetchDashboardData();
-  }, [user?.id]);
+  }, [user?.id, kickMember]);
 
   return (
     <View
@@ -141,128 +161,135 @@ const dashboardMembersScreen = () => {
         style={{
           display: "flex",
           flex: 1,
-          alignItems: "center",
         }}
       >
         {/* current member bubbles */}
         <ScrollView style={{ display: "flex" }}>
-          <View
-            style={[
-              styles.groupCard,
-              { borderWidth: colorScheme === "light" ? 1 : 1 },
-            ]}
-          >
+          <View style={{ width: "100%", alignItems: "center" }}>
             <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                marginBottom: 15,
-              }}
+              style={[
+                styles.groupCard,
+                { borderWidth: colorScheme === "light" ? 1 : 1 },
+              ]}
             >
-              <View style={{ flex: 1, flexShrink: 1 }}>
-                <Text
-                  style={{
-                    color: "black",
-                    fontSize: 18,
-                    fontWeight: 500,
-                  }}
-                >
-                  {orgName}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
-              <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
-                <Image
-                  source={require("../assets/images/MemberIcon.png")}
-                  style={{ width: 18, height: 18 }}
-                />
-                <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                  {memberCount} Members
-                </Text>
-              </View>
-              <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
-                <Image
-                  source={require("../assets/images/CalendarIcon.png")}
-                  style={{ width: 18, height: 18 }}
-                />
-                <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                  {eventCount} Events
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                gap: 8,
-                alignItems: "center",
-                marginTop: 20,
-              }}
-            >
-              <Text style={{ fontSize: 15, fontWeight: 600, color: "#3A3A3A" }}>
-                Join Code:
-              </Text>
-              <Text style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}>
-                {joinCode}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={[
-              styles.bubble,
-              {
-                alignItems: "center",
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                borderColor:
-                  colorScheme === "dark"
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(0,0,0,0.2)",
-              },
-            ]}
-          >
-            {currentMembers.map((member, index) => (
               <View
                 style={{
                   display: "flex",
-                  justifyContent: "flex-start",
-                  marginLeft: 10,
-                  flex: 1,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  marginBottom: 15,
                 }}
-                key={index}
+              >
+                <View style={{ flex: 1, flexShrink: 1 }}>
+                  <Text
+                    style={{
+                      color: "black",
+                      fontSize: 18,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {orgName}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
+                <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
+                  <Image
+                    source={require("../assets/images/MemberIcon.png")}
+                    style={{ width: 18, height: 18 }}
+                  />
+                  <Text style={{ fontSize: 15, fontWeight: 600 }}>
+                    {memberCount} Members
+                  </Text>
+                </View>
+                <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
+                  <Image
+                    source={require("../assets/images/CalendarIcon.png")}
+                    style={{ width: 18, height: 18 }}
+                  />
+                  <Text style={{ fontSize: 15, fontWeight: 600 }}>
+                    {eventCount} Events
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  gap: 8,
+                  alignItems: "center",
+                  marginTop: 20,
+                }}
               >
                 <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: theme.textColor,
-                  }}
+                  style={{ fontSize: 15, fontWeight: 600, color: "#3A3A3A" }}
                 >
-                  {member.name}
+                  Join Code:
                 </Text>
                 <Text
-                  style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                  style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}
                 >
-                  {member.email}
+                  {joinCode}
                 </Text>
               </View>
-            ))}
-
-            <View
-              style={{
-                display: "flex",
-                marginLeft: "auto",
-                flexDirection: "row",
-                gap: 20,
-              }}
-            >
-              <View style={styles.redBubbleBackground}></View>
             </View>
+            {currentMembers.map((member, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.bubble,
+                  {
+                    alignItems: "center",
+                    backgroundColor:
+                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                    borderColor:
+                      colorScheme === "dark"
+                        ? "rgba(255,255,255,0.2)"
+                        : "rgba(0,0,0,0.2)",
+                  },
+                ]}
+              >
+                <View
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    marginLeft: 10,
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: theme.textColor,
+                    }}
+                  >
+                    {member.name}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                  >
+                    {member.email}
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    display: "flex",
+                    marginLeft: "auto",
+                    flexDirection: "row",
+                    gap: 20,
+                  }}
+                >
+                  <TouchableOpacity onPress={() => kickMember(member.user_id)}>
+                    <View style={styles.redBubbleBackground}></View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
           </View>
         </ScrollView>
       </View>
