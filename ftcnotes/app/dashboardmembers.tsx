@@ -34,74 +34,63 @@ const dashboardMembersScreen = () => {
   const [eventCount, setEventCount] = useState(null);
   const [userOrgID, setUserOrgID] = useState(null);
 
-  // gets user info regarding organization status
+  const [currentMembers, setCurrentMembers] = useState<
+    {
+      email: string;
+      name: string;
+    }[]
+  >([]);
+
   useEffect(() => {
     if (!user?.id) return;
 
-    const getUserInfo = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+        // Getting user info
+        const userRes = await fetch(
+          `https://inp.pythonanywhere.com/api/users/${user.id}`
         );
+        if (!userRes.ok)
+          throw new Error(`Failed to get user info: ${userRes.status}`);
+        const userData = await userRes.json();
+        const orgId = userData.organization_id;
+        setUserOrgID(orgId);
 
-        if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
+        if (!orgId) return;
 
-        const data = await res.json();
-        setUserOrgID(data.organization_id);
+        // fetch org info, event count, and members
+        const [orgRes, eventRes, membersRes] = await Promise.all([
+          fetch(`https://inp.pythonanywhere.com/api/organizations/${orgId}`),
+          fetch(
+            `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`
+          ),
+          fetch(`https://inp.pythonanywhere.com/api/users/from-org/${orgId}`),
+        ]);
+
+        if (!orgRes.ok)
+          throw new Error(`Failed to get org info: ${orgRes.status}`);
+        if (!eventRes.ok)
+          throw new Error(`Failed to get event count: ${eventRes.status}`);
+        if (!membersRes.ok)
+          throw new Error(`Failed to get members: ${membersRes.status}`);
+
+        const [orgData, eventData, membersData] = await Promise.all([
+          orgRes.json(),
+          eventRes.json(),
+          membersRes.json(),
+        ]);
+
+        setOrgName(orgData.name);
+        setMemberCount(orgData.member_count);
+        setJoinCode(orgData.join_code);
+        setEventCount(eventData.length);
+        setCurrentMembers(membersData);
       } catch (error) {
-        console.log("Error getting user info: ", error);
+        console.log(`Error fetching dashboard data: ${error}`);
       }
     };
-
-    getUserInfo();
+    fetchDashboardData();
   }, [user?.id]);
-
-  // gets organization info
-  // And checks if user is owner
-  useEffect(() => {
-    if (!userOrgID) return;
-
-    const getOrgInfo = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/${userOrgID}`
-        );
-
-        if (!res.ok) throw new Error(`Failed to get org info: ${res.status}`);
-
-        const data = await res.json();
-
-        setMemberCount(data.member_count);
-        setOrgName(data.name);
-        setJoinCode(data.join_code);
-      } catch (error) {
-        console.log("Error fetching org info: ", error);
-      }
-    };
-
-    getOrgInfo();
-  }, [userOrgID]);
-
-  // gets event count for organization
-  useEffect(() => {
-    const getEventCount = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/event-count/${userOrgID}`
-        );
-
-        if (!res.ok)
-          throw new Error(`Failed to get event count: ${res.status}`);
-
-        const data = await res.json();
-        setEventCount(data.length);
-      } catch (error) {
-        console.log("Error fetching event count: ", error);
-      }
-    };
-
-    getEventCount();
-  }, [userOrgID]);
 
   return (
     <View
@@ -155,7 +144,7 @@ const dashboardMembersScreen = () => {
           alignItems: "center",
         }}
       >
-        {/* pending member bubbles */}
+        {/* current member bubbles */}
         <ScrollView style={{ display: "flex" }}>
           <View
             style={[
@@ -237,27 +226,32 @@ const dashboardMembersScreen = () => {
               },
             ]}
           >
-            <View
-              style={{
-                display: "flex",
-                justifyContent: "flex-start",
-                marginLeft: 10,
-                flex: 1,
-              }}
-            >
-              <Text
+            {currentMembers.map((member, index) => (
+              <View
                 style={{
-                  fontSize: 16,
-                  fontWeight: 500,
-                  color: theme.textColor,
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  marginLeft: 10,
+                  flex: 1,
                 }}
+                key={index}
               >
-                John Brown
-              </Text>
-              <Text style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}>
-                JohnBrown@gmail.com
-              </Text>
-            </View>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: theme.textColor,
+                  }}
+                >
+                  {member.name}
+                </Text>
+                <Text
+                  style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                >
+                  {member.email}
+                </Text>
+              </View>
+            ))}
 
             <View
               style={{
