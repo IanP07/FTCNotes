@@ -28,6 +28,8 @@ const dashboardMembersScreen = () => {
       ? require("../assets/images/FTCNotesBackIconDark.png")
       : require("../assets/images/FTCNotesBackIconLight.png");
 
+  const xIcon = require("../assets/images/FTCNotesXIcon.png");
+
   const [memberCount, setMemberCount] = useState(null);
   const [orgName, setOrgName] = useState(null);
   const [joinCode, setJoinCode] = useState(null);
@@ -285,7 +287,9 @@ const dashboardMembersScreen = () => {
                   }}
                 >
                   <TouchableOpacity onPress={() => kickMember(member.user_id)}>
-                    <View style={styles.redBubbleBackground}></View>
+                    <View style={styles.redBubbleBackground}>
+                      <Image style={{ width: 20, height: 20 }} source={xIcon} />
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>

@@ -28,6 +28,9 @@ const dashboardPendingScreen = () => {
       ? require("../assets/images/FTCNotesBackIconDark.png")
       : require("../assets/images/FTCNotesBackIconLight.png");
 
+  const xIcon = require("../assets/images/FTCNotesXIcon.png");
+  const checkIcon = require("../assets/images/FTCNotesCheckIcon.png");
+
   const [pendingMembers, setPendingMembers] = useState<
     {
       email: string;
@@ -246,7 +249,12 @@ const dashboardPendingScreen = () => {
                 <TouchableOpacity
                   onPress={() => approveRequest(member.user_id)}
                 >
-                  <View style={styles.greenBubbleBackground}></View>
+                  <View style={styles.greenBubbleBackground}>
+                    <Image
+                      style={{ width: 15, height: 15 }}
+                      source={checkIcon}
+                    />
+                  </View>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -254,7 +262,9 @@ const dashboardPendingScreen = () => {
                     denyRequest(member.user_id);
                   }}
                 >
-                  <View style={styles.redBubbleBackground}></View>
+                  <View style={styles.redBubbleBackground}>
+                    <Image style={{ width: 20, height: 20 }} source={xIcon} />
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
