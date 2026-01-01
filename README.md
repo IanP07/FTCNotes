@@ -23,3 +23,8 @@
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="./readMeImages/infoPicture.png" width="245" />
 </p>
+
+## Features
+- Secure google signin
+- Automatic team ranking based on cummulative avg points
+- Ability to manage organizations for both owners/admins and members
