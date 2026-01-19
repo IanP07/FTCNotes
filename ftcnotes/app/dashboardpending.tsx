@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import * as Haptics from "expo-haptics";
 
 const dashboardPendingScreen = () => {
   const { user } = useUser();
@@ -53,8 +54,10 @@ const dashboardPendingScreen = () => {
     })
       .then((response) => {
         if (response.status === 200) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Success!");
         } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.log(response.status);
         }
       })
@@ -76,9 +79,11 @@ const dashboardPendingScreen = () => {
     })
       .then((response) => {
         if (response.status === 200) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Success!");
         } else {
           console.log(response.status);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
       })
       .catch((error) => {
@@ -195,7 +200,6 @@ const dashboardPendingScreen = () => {
         >
           Pending Requests
         </Text>
-
         {/* pending member bubbles */}
         <ScrollView>
           {pendingMembers.map((member, index) => (
@@ -247,7 +251,10 @@ const dashboardPendingScreen = () => {
                 }}
               >
                 <TouchableOpacity
-                  onPress={() => approveRequest(member.user_id)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    approveRequest(member.user_id);
+                  }}
                 >
                   <View style={styles.greenBubbleBackground}>
                     <Image
@@ -259,6 +266,7 @@ const dashboardPendingScreen = () => {
 
                 <TouchableOpacity
                   onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     denyRequest(member.user_id);
                   }}
                 >

@@ -118,7 +118,6 @@ export default function TeamsScreen() {
       .then((teamsWithScores) => {
         // teamsWithScores is an array of all teams that contain totalScores values
         const sortedTeams = teamsWithScores.sort(
-          // sort syntax in js, look up if you forget
           (team1, team2) => team2.totalScores - team1.totalScores
         );
 
@@ -219,11 +218,10 @@ export default function TeamsScreen() {
       },
     })
       .then((response) => {
-        console.log("Response Status:", response.status); // logs HTTP response code
+        console.log("Response Status:", response.status);
         return response.text();
       })
       .then((text) => {
-        // 'text' is the return response from previous .then statement
         if (text.startsWith("{")) {
           console.log("Event created successfully:", text);
           fetchTeams();
