@@ -59,7 +59,7 @@ const HomeScreen = () => {
                 user.primaryEmailAddress?.emailAddress ||
                 user.emailAddresses[0]?.emailAddress,
             }),
-          }
+          },
         );
 
         if (!res.ok) {
@@ -110,7 +110,7 @@ const HomeScreen = () => {
     console.log(
       AuthSession.makeRedirectUri({
         scheme: "myapp",
-      })
+      }),
     );
     try {
       console.log("message1");
@@ -162,7 +162,7 @@ const HomeScreen = () => {
       <Text style={[styles.text, { color: theme.textColor }]}>FTC Notes</Text>
       <Image
         style={styles.image}
-        source={require("../assets/images/screaming-eagles.png")}
+        source={require("../assets/images/FTCNotesIcon.png")}
       />
 
       <TouchableOpacity // button class with more functionality

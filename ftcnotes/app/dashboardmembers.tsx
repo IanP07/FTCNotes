@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import * as Haptics from "expo-haptics";
 
 const dashboardMembersScreen = () => {
   const { user } = useUser();
@@ -57,8 +58,10 @@ const dashboardMembersScreen = () => {
         },
       });
       const data = await res.json();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       console.log(data);
     } catch (error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       console.log(`Error kicking member ${error}`);
     }
   };
@@ -70,7 +73,7 @@ const dashboardMembersScreen = () => {
       try {
         // Getting user info
         const userRes = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user.id}`
+          `https://inp.pythonanywhere.com/api/users/${user.id}`,
         );
         if (!userRes.ok)
           throw new Error(`Failed to get user info: ${userRes.status}`);
@@ -84,7 +87,7 @@ const dashboardMembersScreen = () => {
         const [orgRes, eventRes, membersRes] = await Promise.all([
           fetch(`https://inp.pythonanywhere.com/api/organizations/${orgId}`),
           fetch(
-            `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`
+            `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`,
           ),
           fetch(`https://inp.pythonanywhere.com/api/users/from-org/${orgId}`),
         ]);
@@ -133,7 +136,10 @@ const dashboardMembersScreen = () => {
         >
           <TouchableOpacity
             activeOpacity={0.3}
-            onPress={() => router.push("/admindashboard")}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
           >
             <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>
@@ -286,7 +292,12 @@ const dashboardMembersScreen = () => {
                     gap: 20,
                   }}
                 >
-                  <TouchableOpacity onPress={() => kickMember(member.user_id)}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      kickMember(member.user_id);
+                    }}
+                  >
                     <View style={styles.redBubbleBackground}>
                       <Image style={{ width: 20, height: 20 }} source={xIcon} />
                     </View>

@@ -13,6 +13,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 
 export default function InfoScreen() {
   const fetchInfo = () => {
@@ -91,7 +92,9 @@ export default function InfoScreen() {
 
   const teamsPage = () => {
     console.log(event_id);
-    router.push(`/TeamsScreen/${event_id}`);
+    // router.push(`/TeamsScreen/${event_id}`);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
   };
 
   const [team, setTeam] = useState<{
@@ -118,6 +121,7 @@ export default function InfoScreen() {
   const [notes, setNotes] = useState(""); // notes user is currently creating
 
   const handleAddEvent = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log(id);
     fetch(`https://inp.pythonanywhere.com/api/create-info`, {
       method: "POST",
@@ -140,9 +144,11 @@ export default function InfoScreen() {
       .then((text) => {
         // 'text' is the return response from previous .then statement
         if (text.startsWith("{") || text.startsWith('"E')) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Event created successfully:", text);
           fetchInfo();
         } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.error("Unexpected response:", text);
         }
       })
@@ -171,6 +177,7 @@ export default function InfoScreen() {
           style={{
             display: "flex",
             flexDirection: "row",
+            alignItems: "center",
           }}
         >
           <TouchableOpacity activeOpacity={0.3} onPress={teamsPage}>
@@ -292,7 +299,7 @@ export default function InfoScreen() {
                         ? `${Math.min(
                             (Number(autoScore) / highestScores.auto_score) *
                               100,
-                            100
+                            100,
                           )}%`
                         : "0%",
 
@@ -374,7 +381,7 @@ export default function InfoScreen() {
                         ? `${Math.min(
                             (Number(teleopScore) / highestScores.teleop_score) *
                               100,
-                            100
+                            100,
                           )}%`
                         : "0%",
 
@@ -457,7 +464,7 @@ export default function InfoScreen() {
                             (Number(endgameScore) /
                               highestScores.endgame_score) *
                               100,
-                            100
+                            100,
                           )}%`
                         : "0%",
 
@@ -607,8 +614,8 @@ const styles = StyleSheet.create({
     width: 47,
     height: 47,
     padding: 10,
-    marginRight: 25,
     marginTop: 17,
+    marginRight: 15,
   },
   text: {
     fontSize: 36,
@@ -637,7 +644,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 15,
     paddingHorizontal: 20,
-    width: 380,
+    width: 360,
     borderRadius: 10,
     minHeight: 110,
     margin: 8,

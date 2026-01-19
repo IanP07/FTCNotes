@@ -14,6 +14,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useClerk } from "@clerk/clerk-expo";
+import * as Haptics from "expo-haptics";
 
 const CreateGroupsScreen = () => {
   const { getToken, userId, isSignedIn } = useAuth();
@@ -58,7 +59,7 @@ const CreateGroupsScreen = () => {
             name: organizationName,
             owner_id: user?.id,
           }),
-        }
+        },
       );
 
       if (!res.ok) {
@@ -94,6 +95,7 @@ const CreateGroupsScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             await signOut();
             router.push("/");
           }}

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import * as Haptics from "expo-haptics";
 
 const AdminDashboardScreen = () => {
   const { user } = useUser();
@@ -47,7 +48,10 @@ const AdminDashboardScreen = () => {
         >
           <TouchableOpacity
             activeOpacity={0.3}
-            onPress={() => router.push("/groups")}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
           >
             <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>
@@ -63,6 +67,7 @@ const AdminDashboardScreen = () => {
 
         <TouchableOpacity
           onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             await signOut();
             router.push("/");
           }}
@@ -83,7 +88,10 @@ const AdminDashboardScreen = () => {
       >
         {/* pending members */}
         <TouchableOpacity
-          onPress={() => router.push("/dashboardpending")} // or whatever you want
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/dashboardpending");
+          }}
           activeOpacity={0.3}
         >
           <View
@@ -139,7 +147,10 @@ const AdminDashboardScreen = () => {
 
         {/* current members */}
         <TouchableOpacity
-          onPress={() => router.push("/dashboardmembers")} // or whatever you want
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/dashboardmembers");
+          }}
           activeOpacity={0.3}
         >
           <View

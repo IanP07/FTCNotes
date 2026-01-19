@@ -14,8 +14,8 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useClerk } from "@clerk/clerk-expo";
-
 import { VerificationCodeInput } from "@/components/join-group-box";
+import * as Haptics from "expo-haptics";
 
 const JoinGroupsScreen = () => {
   const { getToken, userId, isSignedIn } = useAuth();
@@ -61,7 +61,7 @@ const JoinGroupsScreen = () => {
             name: organizationName,
             owner_id: user?.id,
           }),
-        }
+        },
       );
 
       if (!res.ok) {
@@ -97,6 +97,7 @@ const JoinGroupsScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             await signOut();
             router.push("/");
           }}
@@ -155,13 +156,13 @@ const JoinGroupsScreen = () => {
                 headers: {
                   "Content-type": "application/json; charset=UTF-8",
                 },
-              }
+              },
             ).then((response) => {
               console.log("Response Status:", response.status); // logs HTTP response code
 
               if (response.status === 200) {
                 Alert.alert(
-                  "Successfully submitted request! Have your owner approve it to join"
+                  "Successfully submitted request! Have your owner approve it to join",
                 );
               } else {
                 Alert.alert("No matching join codes found");

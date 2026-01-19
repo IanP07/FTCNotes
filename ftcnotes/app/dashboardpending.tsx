@@ -97,7 +97,7 @@ const dashboardPendingScreen = () => {
     const getOrgID = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
         );
 
         if (!res.ok) {
@@ -121,7 +121,7 @@ const dashboardPendingScreen = () => {
     const fetchPendingMembers = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/pending-requests?owner_id=${user?.id}`
+          `https://inp.pythonanywhere.com/api/organizations/pending-requests?owner_id=${user?.id}`,
         );
 
         if (!res.ok) {
@@ -156,7 +156,10 @@ const dashboardPendingScreen = () => {
         >
           <TouchableOpacity
             activeOpacity={0.3}
-            onPress={() => router.push("/admindashboard")}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
           >
             <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>

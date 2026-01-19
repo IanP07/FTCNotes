@@ -19,6 +19,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlipInEasyX } from "react-native-reanimated";
 import { green, red } from "react-native-reanimated/lib/typescript/Colors";
 import DeleteConfirmationModal from "../components/ui/deleteEventModal";
+import * as Haptics from "expo-haptics";
 
 export default function EventsScreen() {
   const { user } = useUser();
@@ -62,7 +63,7 @@ export default function EventsScreen() {
     const getUserInfo = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
         );
 
         if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
@@ -80,7 +81,7 @@ export default function EventsScreen() {
   const fetchEvents = async () => {
     try {
       const res = await fetch(
-        `https://inp.pythonanywhere.com/api/events-for-organization/${userOrgID}`
+        `https://inp.pythonanywhere.com/api/events-for-organization/${userOrgID}`,
       );
       if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
       const data = await res.json();
@@ -88,13 +89,13 @@ export default function EventsScreen() {
       const eventsWithCounts = await Promise.all(
         data.map(async (event: { id: number }) => {
           const countRes = await fetch(
-            `https://inp.pythonanywhere.com/api/team-amount/${event.id}`
+            `https://inp.pythonanywhere.com/api/team-amount/${event.id}`,
           );
           if (!countRes.ok)
             throw new Error(`Failed to fetch team count: ${countRes.status}`);
           const countData = await countRes.json();
           return { ...event, teamCount: countData["team-amount"] }; // adds count to data
-        })
+        }),
       );
 
       setEvents(eventsWithCounts);
@@ -172,6 +173,7 @@ export default function EventsScreen() {
   const [newEventLocation, setNewEventLocation] = useState("");
 
   const handleAddEvent = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (newEventName.trim().length === 0) return;
 
     setShowForm(false); // Hide the form
@@ -196,13 +198,16 @@ export default function EventsScreen() {
       .then((text) => {
         // 'text' is the return response from previous .then statement
         if (text.startsWith("{")) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Event created successfully:", text);
           fetchEvents();
         } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.error("Unexpected response:", text);
         }
       })
       .catch((error) => {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         console.error("Error posting event:", error);
       });
 
@@ -213,6 +218,7 @@ export default function EventsScreen() {
   };
 
   const handleDeleteEvent = (eventId: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setEventToDelete(eventId); // Set the team to delete
     setShowDeleteModal(true); // Show the confirmation modal
   };
@@ -226,24 +232,30 @@ export default function EventsScreen() {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       )
         .then((data) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Event deleted:", data);
           fetchEvents(); // refresh list
         })
-        .catch((err) => console.error("Error deleting event:", err));
+        .catch((err) => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          console.error("Error deleting event:", err);
+        });
     }
     setShowDeleteModal(false); // Close the modal after confirming
     setEventToDelete(null); // Reset the team to delete
   };
 
   const cancelDelete = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowDeleteModal(false); // Close the modal without deleting
     setEventToDelete(null); // Reset the team to delete
   };
 
   const eventSetupFunc = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowForm(true); // shows form to add event
     setAddEventsText(false); // hides initial event text
   };
@@ -261,7 +273,11 @@ export default function EventsScreen() {
         >
           <TouchableOpacity
             activeOpacity={0.3}
-            onPress={() => router.push("/groups")}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              // router.push("/groups");
+              router.back();
+            }}
           >
             <Image style={{ height: 40, width: 40 }} source={backIcon} />
           </TouchableOpacity>
@@ -306,7 +322,10 @@ export default function EventsScreen() {
             <TouchableOpacity
               key={index}
               style={{ flex: 1 }}
-              onPress={() => teamsPage(event.id)} // onPress={teamsPage}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                teamsPage(event.id);
+              }}
             >
               <Text style={styles.eventNameText}>{event.name}</Text>
 

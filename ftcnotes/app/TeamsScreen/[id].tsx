@@ -14,6 +14,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams, Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DeleteConfirmationModal from "../../components/ui/deleteTeamModal";
+import * as Haptics from "expo-haptics";
 
 export default function TeamsScreen() {
   const { id } = useLocalSearchParams(); // unique id depending on what event you clicked on
@@ -48,7 +49,8 @@ export default function TeamsScreen() {
   const router = useRouter();
 
   const eventsPage = () => {
-    router.push("/EventsScreen");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
   };
 
   const infoPage = (id: Number, event_id: Number) => {
@@ -111,14 +113,14 @@ export default function TeamsScreen() {
                   ...team,
                   totalScores,
                 };
-              })
-          )
+              }),
+          ),
         );
       })
       .then((teamsWithScores) => {
         // teamsWithScores is an array of all teams that contain totalScores values
         const sortedTeams = teamsWithScores.sort(
-          (team1, team2) => team2.totalScores - team1.totalScores
+          (team1, team2) => team2.totalScores - team1.totalScores,
         );
 
         const rankedTeams = sortedTeams.map((team, index) => ({
@@ -136,7 +138,7 @@ export default function TeamsScreen() {
       const updatedTeams = await Promise.all(
         teams.map(async (team) => {
           const res = await fetch(
-            `https://inp.pythonanywhere.com/api/info/${team.team_id}`
+            `https://inp.pythonanywhere.com/api/info/${team.team_id}`,
           );
           if (!res.ok)
             throw new Error(`Failed to fetch team scores: ${res.status}`);
@@ -144,7 +146,7 @@ export default function TeamsScreen() {
           const totalScores =
             data.auto_score + data.teleop_score + data.endgame_score;
           return { ...team, totalScores };
-        })
+        }),
       );
       setTeams(updatedTeams);
     } catch (error) {
@@ -238,6 +240,7 @@ export default function TeamsScreen() {
   };
 
   const handleDeleteTeam = (teamId: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setTeamToDelete(teamId); // Set the team to delete
     setShowDeleteModal(true); // Show the confirmation modal
   };
@@ -335,7 +338,10 @@ export default function TeamsScreen() {
                 styles.button,
                 { borderWidth: colorScheme === "light" ? 1 : 0 },
               ]}
-              onPress={() => infoPage(team.team_id, team.event_id)} // onPress={teamsPage}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                infoPage(team.team_id, team.event_id);
+              }}
             >
               <Text style={styles.TeamNameText}>{team.name}</Text>
               <Text style={[styles.buttonText, { marginBottom: 10 }]}>
@@ -518,7 +524,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     paddingRight: 100,
-    width: 380,
+    width: 360,
     borderRadius: 10,
     margin: 8,
     display: "flex",

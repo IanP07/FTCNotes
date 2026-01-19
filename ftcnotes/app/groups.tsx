@@ -12,6 +12,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
 import LeaveConfirmationModal from "../components/ui/leaveGroupModal";
+import * as Haptics from "expo-haptics";
 
 const GroupsScreen = () => {
   const [userOrgID, setUserOrgID] = useState<number | null>(null);
@@ -35,7 +36,7 @@ const GroupsScreen = () => {
     const getUserInfo = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`
+          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
         );
 
         if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
@@ -52,6 +53,7 @@ const GroupsScreen = () => {
   }, [user?.id]);
 
   const handleLeaveGroup = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowLeaveModal(true);
   };
 
@@ -69,10 +71,12 @@ const GroupsScreen = () => {
         console.log("Response Status:", response.status); // logs HTTP response code
 
         if (response.status == 200) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           router.replace("/groups");
         }
       });
     } catch (error) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.log(`Error leaving group: ${error}`);
     }
   };
@@ -85,7 +89,7 @@ const GroupsScreen = () => {
     const getOrgInfo = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/${userOrgID}`
+          `https://inp.pythonanywhere.com/api/organizations/${userOrgID}`,
         );
 
         if (!res.ok) throw new Error(`Failed to get org info: ${res.status}`);
@@ -112,7 +116,7 @@ const GroupsScreen = () => {
     const getEventCount = async () => {
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/event-count/${userOrgID}`
+          `https://inp.pythonanywhere.com/api/organizations/event-count/${userOrgID}`,
         );
 
         if (!res.ok)
@@ -246,7 +250,10 @@ const GroupsScreen = () => {
 
         {/* Event Button */}
         <TouchableOpacity
-          onPress={() => router.push("/EventsScreen")} // or whatever you want
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push("/EventsScreen");
+          }}
           activeOpacity={0.3}
         >
           <View
@@ -303,7 +310,10 @@ const GroupsScreen = () => {
         {/* Admin Dashboard Button */}
         {isOrgOwner && (
           <TouchableOpacity
-            onPress={() => router.push("/admindashboard")} // or whatever you want
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push("/admindashboard");
+            }}
             activeOpacity={0.3}
           >
             <View
@@ -416,8 +426,14 @@ const GroupsScreen = () => {
           <LeaveConfirmationModal
             visible={showLeaveModal}
             onConfirm={leaveGroup}
-            onCancel={() => setShowLeaveModal(false)}
-            onClose={() => setShowLeaveModal(false)}
+            onCancel={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowLeaveModal(false);
+            }}
+            onClose={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setShowLeaveModal(false);
+            }}
           />
         )}
       </View>
@@ -438,6 +454,7 @@ const GroupsScreen = () => {
 
         <TouchableOpacity
           onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             await signOut();
             router.push("/");
           }}
