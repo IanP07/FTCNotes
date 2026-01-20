@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
 import LeaveConfirmationModal from "../components/ui/leaveGroupModal";
 import * as Haptics from "expo-haptics";
@@ -29,28 +29,72 @@ const GroupsScreen = () => {
 
   const { user } = useUser();
 
-  // gets user info regarding organization status
-  useEffect(() => {
-    if (!user?.id) return;
+  const getUserInfo = async () => {
+    try {
+      const res = await fetch(
+        `https://inp.pythonanywhere.com/api/users/${user?.id}`,
+      );
 
-    const getUserInfo = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
-        );
+      if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
 
-        if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
+      const data = await res.json();
+      setUserOrgID(data.organization_id);
+      setUserJoinStatus(data.join_status);
 
-        const data = await res.json();
-        setUserOrgID(data.organization_id);
-        setUserJoinStatus(data.join_status);
-      } catch (error) {
-        console.log("Error getting user info: ", error);
+      if (data.organization_id) {
+        await Promise.all([
+          getOrgInfo(data.organization_id),
+          getEventCount(data.organization_id),
+        ]);
       }
-    };
+    } catch (error) {
+      console.log("Error getting user info: ", error);
+    }
+  };
 
-    getUserInfo();
-  }, [user?.id]);
+  const getOrgInfo = async (orgId: number) => {
+    try {
+      const res = await fetch(
+        `https://inp.pythonanywhere.com/api/organizations/${orgId}`,
+      );
+
+      if (!res.ok) throw new Error(`Failed to get org info: ${res.status}`);
+
+      const data = await res.json();
+
+      if (user?.id === data["owner_id"]) {
+        setIsOrgOwner(true);
+      }
+
+      setMemberCount(data.member_count);
+      setOrgName(data.name);
+      setJoinCode(data.join_code);
+    } catch (error) {
+      console.log("Error fetching org info: ", error);
+    }
+  };
+
+  const getEventCount = async (orgId: number) => {
+    try {
+      const res = await fetch(
+        `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`,
+      );
+
+      if (!res.ok) throw new Error(`Failed to get event count: ${res.status}`);
+
+      const data = await res.json();
+      setEventCount(data.length);
+    } catch (error) {
+      console.log("Error fetching event count: ", error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      getUserInfo();
+    }, [user?.id]),
+  );
 
   const handleLeaveGroup = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -80,57 +124,6 @@ const GroupsScreen = () => {
       console.log(`Error leaving group: ${error}`);
     }
   };
-
-  // gets organization info
-  // And checks if user is owner
-  useEffect(() => {
-    if (!userOrgID) return;
-
-    const getOrgInfo = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/${userOrgID}`,
-        );
-
-        if (!res.ok) throw new Error(`Failed to get org info: ${res.status}`);
-
-        const data = await res.json();
-
-        if (user?.id === data["owner_id"]) {
-          setIsOrgOwner(true);
-        }
-
-        setMemberCount(data.member_count);
-        setOrgName(data.name);
-        setJoinCode(data.join_code);
-      } catch (error) {
-        console.log("Error fetching org info: ", error);
-      }
-    };
-
-    getOrgInfo();
-  }, [userOrgID]);
-
-  // gets event count for organization
-  useEffect(() => {
-    const getEventCount = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/event-count/${userOrgID}`,
-        );
-
-        if (!res.ok)
-          throw new Error(`Failed to get event count: ${res.status}`);
-
-        const data = await res.json();
-        setEventCount(data.length);
-      } catch (error) {
-        console.log("Error fetching event count: ", error);
-      }
-    };
-
-    getEventCount();
-  }, [userOrgID]);
 
   const { signOut } = useClerk();
   const router = useRouter();

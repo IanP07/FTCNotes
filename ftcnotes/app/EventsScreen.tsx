@@ -24,8 +24,7 @@ import * as Haptics from "expo-haptics";
 export default function EventsScreen() {
   const { user } = useUser();
 
-  const [addEventsText, setAddEventsText] = useState(true);
-  const [userOrgID, setUserOrgID] = useState("");
+  const [userOrgID, setUserOrgID] = useState(0);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
@@ -49,6 +48,26 @@ export default function EventsScreen() {
     }
   };
 
+  const formatDateInput = (text: string) => {
+    const digits = text.replace(/\D/g, "");
+
+    let formatted = "";
+    if (digits.length <= 2) {
+      formatted = digits; // month
+    } else if (digits.length <= 4) {
+      formatted = digits.slice(0, 2) + "/" + digits.slice(2);
+    } else {
+      formatted =
+        digits.slice(0, 2) +
+        "/" +
+        digits.slice(2, 4) +
+        "/" +
+        digits.slice(4, 8);
+    }
+
+    return formatted;
+  };
+
   const statusColors: Record<string, string> = {
     Completed: "#626262",
     Upcoming: "#0065EA",
@@ -56,32 +75,29 @@ export default function EventsScreen() {
     Unknown: "#000000",
   };
 
-  // gets user info regarding organization status
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const getUserInfo = async () => {
-      try {
-        const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
-        );
-
-        if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
-
-        const data = await res.json();
-        setUserOrgID(data.organization_id);
-      } catch (error) {
-        console.log("Error getting user info: ", error);
-      }
-    };
-
-    getUserInfo();
-  }, [user?.id]);
-
-  const fetchEvents = async () => {
+  const getUserInfo = async () => {
     try {
       const res = await fetch(
-        `https://inp.pythonanywhere.com/api/events-for-organization/${userOrgID}`,
+        `https://inp.pythonanywhere.com/api/users/${user?.id}`,
+      );
+
+      if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);
+
+      const data = await res.json();
+      setUserOrgID(data.organization_id);
+
+      if (data.organization_id) {
+        fetchEvents(data.organization_id);
+      }
+    } catch (error) {
+      console.log("Error getting user info: ", error);
+    }
+  };
+
+  const fetchEvents = async (orgId: number) => {
+    try {
+      const res = await fetch(
+        `https://inp.pythonanywhere.com/api/events-for-organization/${orgId}`,
       );
       if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
       const data = await res.json();
@@ -104,11 +120,12 @@ export default function EventsScreen() {
     }
   };
 
-  // Grabs all Current events in the Database and saves them to the events state.
-  useEffect(() => {
-    if (!userOrgID) return;
-    fetchEvents();
-  }, [userOrgID]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user?.id) return;
+      getUserInfo();
+    }, [user?.id]),
+  );
 
   const colorScheme = useColorScheme(); // accesses users current system color scheme
 
@@ -158,15 +175,6 @@ export default function EventsScreen() {
     }[]
   >([]);
 
-  // Hides or shows starting text
-  useEffect(() => {
-    if (events.length > 0) {
-      setAddEventsText(false);
-    } else {
-      setAddEventsText(true);
-    }
-  }, [events]); // Triggers whenever events list is updated
-
   // Event data user is currently generating
   const [newEventName, setNewEventName] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
@@ -200,7 +208,7 @@ export default function EventsScreen() {
         if (text.startsWith("{")) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Event created successfully:", text);
-          fetchEvents();
+          fetchEvents(userOrgID);
         } else {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.error("Unexpected response:", text);
@@ -237,7 +245,7 @@ export default function EventsScreen() {
         .then((data) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           console.log("Event deleted:", data);
-          fetchEvents(); // refresh list
+          fetchEvents(userOrgID); // refresh list
         })
         .catch((err) => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -257,7 +265,6 @@ export default function EventsScreen() {
   const eventSetupFunc = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowForm(true); // shows form to add event
-    setAddEventsText(false); // hides initial event text
   };
 
   return (
@@ -396,7 +403,7 @@ export default function EventsScreen() {
         />
       )}
 
-      {addEventsText && (
+      {events.length === 0 && (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
             Add FTC Events Here!
@@ -422,7 +429,7 @@ export default function EventsScreen() {
             placeholderTextColor={theme.textColor}
             style={[styles.input, { color: theme.textColor }]}
             value={newEventDate}
-            onChangeText={setNewEventDate} // stores text data in the newEventName state
+            onChangeText={(text) => setNewEventDate(formatDateInput(text))} // stores text data in the newEventName state
             keyboardType="numeric"
           />
           <TextInput

@@ -68,7 +68,7 @@ const CreateGroupsScreen = () => {
         Alert.alert("Failed to create organization");
       } else {
         Alert.alert("Organization created successfully!");
-        router.replace("/groups"); // 👈 navigates to groups screen
+        router.replace("/groups");
       }
     } catch (error) {
       console.log("error: ", error);

@@ -15,6 +15,8 @@ import { useRouter, useLocalSearchParams, Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DeleteConfirmationModal from "../../components/ui/deleteTeamModal";
 import * as Haptics from "expo-haptics";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
 export default function TeamsScreen() {
   const { id } = useLocalSearchParams(); // unique id depending on what event you clicked on
@@ -76,126 +78,67 @@ export default function TeamsScreen() {
     name: string;
   } | null>(null);
 
-  const fetchTeams = () => {
-    fetch(`https://inp.pythonanywhere.com/api/teams/${id}`) // or your GET endpoint
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch events: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setTeams(data); // assumes `data` is an array of team objects
+  const loadEventAndTeams = async () => {
+    try {
+      // Fetch event
+      const eventRes = await fetch(
+        `https://inp.pythonanywhere.com/api/events/${id}`,
+      );
+      if (!eventRes.ok) throw new Error("Failed to fetch event");
+      const eventData = await eventRes.json();
+      setEvent(eventData);
 
-        return Promise.all(
-          data.map((team: { team_id: number }) =>
-            fetch(`https://inp.pythonanywhere.com/api/info/${team.team_id}`)
-              .then((res) => {
-                if (!res.ok) {
-                  throw new Error(`Failed to fetch scores ${res.status}`);
-                }
-                return res.json();
-              })
-              .then((scoreData) => {
-                // if scores havent been entered yet, array containing
-                // all scores is set to all zeros.
-                const s = scoreData[0] || {
-                  auto_score: 0,
-                  teleop_score: 0,
-                  endgame_score: 0,
-                };
-                const totalScores =
-                  Number(s.auto_score) +
-                  Number(s.teleop_score) +
-                  Number(s.endgame_score);
+      // Fetch teams
+      const teamsRes = await fetch(
+        `https://inp.pythonanywhere.com/api/teams/${id}`,
+      );
+      if (!teamsRes.ok) throw new Error("Failed to fetch teams");
+      const teamsData = await teamsRes.json();
 
-                return {
-                  ...team,
-                  totalScores,
-                };
-              }),
-          ),
-        );
-      })
-      .then((teamsWithScores) => {
-        // teamsWithScores is an array of all teams that contain totalScores values
-        const sortedTeams = teamsWithScores.sort(
-          (team1, team2) => team2.totalScores - team1.totalScores,
-        );
+      // Fetch scores in parallel
+      const teamsWithScores = await Promise.all(
+        teamsData.map(async (team: { team_id: number }) => {
+          const res = await fetch(
+            `https://inp.pythonanywhere.com/api/info/${team.team_id}`,
+          );
+          const scoreData = await res.json();
+          const s = scoreData[0] || {
+            auto_score: 0,
+            teleop_score: 0,
+            endgame_score: 0,
+          };
 
-        const rankedTeams = sortedTeams.map((team, index) => ({
+          const totalScores =
+            Number(s.auto_score) +
+            Number(s.teleop_score) +
+            Number(s.endgame_score);
+
+          return { ...team, totalScores };
+        }),
+      );
+
+      // Sort + rank
+      const rankedTeams = teamsWithScores
+        .sort((a, b) => b.totalScores - a.totalScores)
+        .map((team, index) => ({
           ...team,
           rank: index + 1,
         }));
 
-        setTeams(rankedTeams);
-      })
-      .catch((err) => console.error("Error fetching teams/scores:", err));
-  };
-
-  const getTeamScores = async () => {
-    try {
-      const updatedTeams = await Promise.all(
-        teams.map(async (team) => {
-          const res = await fetch(
-            `https://inp.pythonanywhere.com/api/info/${team.team_id}`,
-          );
-          if (!res.ok)
-            throw new Error(`Failed to fetch team scores: ${res.status}`);
-          const data = await res.json();
-          const totalScores =
-            data.auto_score + data.teleop_score + data.endgame_score;
-          return { ...team, totalScores };
-        }),
-      );
-      setTeams(updatedTeams);
-    } catch (error) {
-      console.error("Error fetching team scores:", error);
+      setTeams(rankedTeams);
+    } catch (err) {
+      console.error("Error loading teams screen:", err);
     }
   };
 
-  // gets event to display in topbar
-  const getEvent = () => {
-    fetch(`https://inp.pythonanywhere.com/api/events/${id}`) // or your GET endpoint
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch events: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setEvent(data);
-      })
-      .catch((err) => console.error("Error fetching events:", err));
-  };
-
-  useEffect(() => {
-    getEvent();
-
-    const fetchTeamsAndScores = async () => {
-      await fetchTeams();
-      getTeamScores(); // runs only after fetchTeams() finishes
-    };
-    fetchTeamsAndScores();
-  }, []);
-
-  useEffect(() => {
-    if (event) {
-      console.log("Event updated:", event);
-    }
-  }, [event]);
-
-  // Hides or shows starting text
-  useEffect(() => {
-    if (teams.length > 0) {
-      setAddTeamText(false);
-    } else {
-      setAddTeamText(true);
-    }
-  }, [teams]); // Triggers whenever teams list is updated
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      loadEventAndTeams();
+    }, [id]),
+  );
 
   const [showForm, setShowForm] = useState(false); // toggles form visibility
-  const [addTeamText, setAddTeamText] = useState(true); // Initial text on screen
 
   const [newTeamName, setNewTeamName] = useState(""); // Team name user is currently creating
   const [newTeamNumber, setNewTeamNumber] = useState(""); // Team number user is creating
@@ -226,7 +169,7 @@ export default function TeamsScreen() {
       .then((text) => {
         if (text.startsWith("{")) {
           console.log("Event created successfully:", text);
-          fetchTeams();
+          loadEventAndTeams();
         } else {
           console.error("Unexpected response:", text);
         }
@@ -255,7 +198,7 @@ export default function TeamsScreen() {
       })
         .then((data) => {
           console.log("Event deleted:", data);
-          fetchTeams(); // refresh list
+          loadEventAndTeams(); // refresh list
         })
         .catch((err) => console.error("Error deleting event:", err));
     }
@@ -270,7 +213,6 @@ export default function TeamsScreen() {
 
   const eventSetupFunc = () => {
     setShowForm(true); // shows form to add event
-    setAddTeamText(false); // hides initial event text
   };
 
   return (
@@ -378,7 +320,7 @@ export default function TeamsScreen() {
         />
       )}
 
-      {addTeamText && (
+      {teams.length === 0 && (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
             Add Teams Here!
