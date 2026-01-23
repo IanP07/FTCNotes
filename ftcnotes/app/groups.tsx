@@ -28,6 +28,7 @@ const GroupsScreen = () => {
   const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   const { user } = useUser();
+  const { getToken } = useAuth();
 
   const getUserInfo = async () => {
     try {
@@ -75,9 +76,17 @@ const GroupsScreen = () => {
   };
 
   const getEventCount = async (orgId: number) => {
+    const token = await getToken();
     try {
       const res = await fetch(
-        `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`,
+        `https://inp.pythonanywhere.com/api/events/event-count/${orgId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
       if (!res.ok) throw new Error(`Failed to get event count: ${res.status}`);

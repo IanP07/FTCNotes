@@ -20,14 +20,18 @@ import { FlipInEasyX } from "react-native-reanimated";
 import { green, red } from "react-native-reanimated/lib/typescript/Colors";
 import DeleteConfirmationModal from "../components/ui/deleteEventModal";
 import * as Haptics from "expo-haptics";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export default function EventsScreen() {
   const { user } = useUser();
 
   const [userOrgID, setUserOrgID] = useState(0);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+
+  const { getToken } = useAuth();
 
   const compareDates = (eventDateStr: string) => {
     const currentDate = new Date();
@@ -95,9 +99,17 @@ export default function EventsScreen() {
   };
 
   const fetchEvents = async (orgId: number) => {
+    const token = await getToken();
     try {
       const res = await fetch(
         `https://inp.pythonanywhere.com/api/events-for-organization/${orgId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
       if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
       const data = await res.json();
@@ -180,12 +192,13 @@ export default function EventsScreen() {
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventLocation, setNewEventLocation] = useState("");
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (newEventName.trim().length === 0) return;
 
     setShowForm(false); // Hide the form
 
+    const token = await getToken();
     // Creates new event
     fetch("https://inp.pythonanywhere.com/api/create-event", {
       method: "POST",
@@ -193,10 +206,10 @@ export default function EventsScreen() {
         name: newEventName,
         date: newEventDate,
         location: newEventLocation,
-        user_id: user?.id,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
@@ -231,7 +244,9 @@ export default function EventsScreen() {
     setShowDeleteModal(true); // Show the confirmation modal
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
+    const token = await getToken();
+
     if (eventToDelete !== null) {
       fetch(
         `https://inp.pythonanywhere.com/api/delete-event/${eventToDelete}`,
@@ -239,6 +254,7 @@ export default function EventsScreen() {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         },
       )
