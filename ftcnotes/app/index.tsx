@@ -107,14 +107,7 @@ const HomeScreen = () => {
   }, [isLoaded, isSignedIn, router]);
 
   const onPress = useCallback(async () => {
-    console.log(
-      AuthSession.makeRedirectUri({
-        scheme: "myapp",
-      }),
-    );
     try {
-      console.log("message1");
-      console.log("message2");
       // Start the authentication process by calling `startSSOFlow()`
       const { createdSessionId, setActive, signIn, signUp } =
         await startSSOFlow({

@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 
 const dashboardPendingScreen = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { signOut } = useClerk();
 
   const router = useRouter();
@@ -43,6 +44,7 @@ const dashboardPendingScreen = () => {
   const [orgID, setOrgID] = useState("");
 
   const denyRequest = async (user_id: string) => {
+    const token = await getToken();
     fetch("https://inp.pythonanywhere.com/api/organizations/deny-request", {
       method: "POST",
       body: JSON.stringify({
@@ -50,6 +52,7 @@ const dashboardPendingScreen = () => {
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
@@ -67,6 +70,7 @@ const dashboardPendingScreen = () => {
   };
 
   const approveRequest = async (user_id: string) => {
+    const token = await getToken();
     fetch("https://inp.pythonanywhere.com/api/organizations/approve-request", {
       method: "POST",
       body: JSON.stringify({
@@ -75,6 +79,7 @@ const dashboardPendingScreen = () => {
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
@@ -119,9 +124,17 @@ const dashboardPendingScreen = () => {
     if (!user?.id) return;
 
     const fetchPendingMembers = async () => {
+      const token = await getToken();
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/organizations/pending-requests?owner_id=${user?.id}`,
+          `https://inp.pythonanywhere.com/api/organizations/pending-requests`,
+          {
+            method: "GET",
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         if (!res.ok) {

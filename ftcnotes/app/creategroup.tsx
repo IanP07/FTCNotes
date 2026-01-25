@@ -46,6 +46,7 @@ const CreateGroupsScreen = () => {
       Alert.alert("Please enter a group name.");
       return;
     }
+    const token = await getToken();
 
     try {
       const res = await fetch(
@@ -54,6 +55,7 @@ const CreateGroupsScreen = () => {
           method: "POST",
           headers: {
             "Content-type": "application/json; charset=UTF-8",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             name: organizationName,

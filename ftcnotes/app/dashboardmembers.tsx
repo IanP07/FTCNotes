@@ -15,6 +15,7 @@ import * as Haptics from "expo-haptics";
 
 const dashboardMembersScreen = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { signOut } = useClerk();
 
   const router = useRouter();
@@ -46,6 +47,7 @@ const dashboardMembersScreen = () => {
   >([]);
 
   const kickMember = async (kickedMemberID: string) => {
+    const token = await getToken();
     try {
       const res = await fetch(`https://inp.pythonanywhere.com/api/kick-user`, {
         method: "POST",
@@ -55,13 +57,14 @@ const dashboardMembersScreen = () => {
         }),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await res.json();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       console.log(data);
     } catch (error) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.log(`Error kicking member ${error}`);
     }
   };
@@ -70,6 +73,7 @@ const dashboardMembersScreen = () => {
     if (!user?.id) return;
 
     const fetchDashboardData = async () => {
+      const token = await getToken();
       try {
         // Getting user info
         const userRes = await fetch(
@@ -85,11 +89,30 @@ const dashboardMembersScreen = () => {
 
         // fetch org info, event count, and members
         const [orgRes, eventRes, membersRes] = await Promise.all([
-          fetch(`https://inp.pythonanywhere.com/api/organizations/${orgId}`),
+          fetch(`https://inp.pythonanywhere.com/api/organizations/${orgId}`, {
+            method: "GET",
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
           fetch(
-            `https://inp.pythonanywhere.com/api/organizations/event-count/${orgId}`,
+            `https://inp.pythonanywhere.com/api/events/event-count/${orgId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                Authorization: `Bearer ${token}`,
+              },
+            },
           ),
-          fetch(`https://inp.pythonanywhere.com/api/users/from-org/${orgId}`),
+          fetch(`https://inp.pythonanywhere.com/api/users/from-org/${orgId}`, {
+            method: "GET",
+            headers: {
+              "Content-type": "application/json; charset=UTF-8",
+              Authorization: `Bearer ${token}`,
+            },
+          }),
         ]);
 
         if (!orgRes.ok)

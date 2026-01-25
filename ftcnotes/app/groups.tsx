@@ -54,9 +54,17 @@ const GroupsScreen = () => {
   };
 
   const getOrgInfo = async (orgId: number) => {
+    const token = await getToken();
     try {
       const res = await fetch(
         `https://inp.pythonanywhere.com/api/organizations/${orgId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
       if (!res.ok) throw new Error(`Failed to get org info: ${res.status}`);
@@ -111,6 +119,7 @@ const GroupsScreen = () => {
   };
 
   const leaveGroup = async () => {
+    const token = await getToken();
     try {
       await fetch("https://inp.pythonanywhere.com/api/leave-organization", {
         method: "POST",
@@ -119,6 +128,7 @@ const GroupsScreen = () => {
         }),
         headers: {
           "Content-type": "application/json; charset=UTF-8",
+          Authorization: `Bearer ${token}`,
         },
       }).then((response) => {
         console.log("Response Status:", response.status); // logs HTTP response code

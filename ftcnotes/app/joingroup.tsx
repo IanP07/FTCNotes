@@ -144,7 +144,8 @@ const JoinGroupsScreen = () => {
         <TouchableOpacity
           style={styles.button}
           activeOpacity={0.3}
-          onPress={() => {
+          onPress={async () => {
+            const token = await getToken();
             fetch(
               "https://inp.pythonanywhere.com/api/organizations/request-join",
               {
@@ -155,6 +156,7 @@ const JoinGroupsScreen = () => {
                 }),
                 headers: {
                   "Content-type": "application/json; charset=UTF-8",
+                  Authorization: `Bearer ${token}`,
                 },
               },
             ).then((response) => {
