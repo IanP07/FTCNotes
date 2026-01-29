@@ -80,9 +80,16 @@ export default function EventsScreen() {
   };
 
   const getUserInfo = async () => {
+    const token = await getToken();
     try {
       const res = await fetch(
-        `https://inp.pythonanywhere.com/api/users/${user?.id}`,
+        `https://inp.pythonanywhere.com/api/users/user`, {
+          method: 'GET',
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          }
+        }
       );
 
       if (!res.ok) throw new Error(`Failed to get user info: ${res.status}`);

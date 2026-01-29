@@ -77,7 +77,13 @@ const dashboardMembersScreen = () => {
       try {
         // Getting user info
         const userRes = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user.id}`,
+          `https://inp.pythonanywhere.com/api/users/user`, {
+            method: 'GET',
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            }
+          }
         );
         if (!userRes.ok)
           throw new Error(`Failed to get user info: ${userRes.status}`);

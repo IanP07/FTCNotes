@@ -100,9 +100,16 @@ const dashboardPendingScreen = () => {
     if (!user?.id) return;
 
     const getOrgID = async () => {
+      const token = await getToken();
       try {
         const res = await fetch(
-          `https://inp.pythonanywhere.com/api/users/${user?.id}`,
+          `https://inp.pythonanywhere.com/api/users/user`, {
+            method: 'GET',
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            }
+          }
         );
 
         if (!res.ok) {
