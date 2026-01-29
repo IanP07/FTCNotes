@@ -118,6 +118,13 @@ export default function EventsScreen() {
         data.map(async (event: { id: number }) => {
           const countRes = await fetch(
             `https://inp.pythonanywhere.com/api/team-amount/${event.id}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-type": "application/json; charset=UTF-8",
+                Authorization: `Bearer ${token}`,
+              },
+            },
           );
           if (!countRes.ok)
             throw new Error(`Failed to fetch team count: ${countRes.status}`);

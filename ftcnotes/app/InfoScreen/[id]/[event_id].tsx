@@ -14,10 +14,21 @@ import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { useAuth } from "@clerk/clerk-expo";
 
 export default function InfoScreen() {
-  const fetchInfo = () => {
-    fetch(`https://inp.pythonanywhere.com/api/info/${id}`) // or your GET endpoint
+  const { getToken } = useAuth();
+
+  const fetchInfo = async () => {
+    const token = await getToken();
+
+    fetch(`https://inp.pythonanywhere.com/api/info/${id}`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+      }
+    }) // or your GET endpoint
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch info: ${res.status}`);
@@ -37,7 +48,13 @@ export default function InfoScreen() {
       .catch((err) => console.error("Error fetching events:", err));
 
     // gets team to display on topbar
-    fetch(`https://inp.pythonanywhere.com/api/get-team/${id}`)
+    fetch(`https://inp.pythonanywhere.com/api/get-team/${id}`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+      }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch team: ${res.status}`);
@@ -49,7 +66,13 @@ export default function InfoScreen() {
       });
 
     // gets highest scores across all teams to compare with current team
-    fetch(`https://inp.pythonanywhere.com/api/info/highest-scores/${event_id}`)
+    fetch(`https://inp.pythonanywhere.com/api/info/highest-scores/${event_id}`, {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch highest scores ${res.status}`);
@@ -120,7 +143,9 @@ export default function InfoScreen() {
   const [endgameScore, setEndgameScore] = useState(""); // notes user is currently creating
   const [notes, setNotes] = useState(""); // notes user is currently creating
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
+    const token = await getToken();
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log(id);
     fetch(`https://inp.pythonanywhere.com/api/create-info`, {
@@ -134,7 +159,8 @@ export default function InfoScreen() {
         notes: notes,
       }),
       headers: {
-        "Content-type": "application/json; charset=UTF-8",
+        "Content-type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {

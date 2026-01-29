@@ -17,9 +17,13 @@ import DeleteConfirmationModal from "../../components/ui/deleteTeamModal";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
+import { useAuth } from "@clerk/clerk-expo";
+
+
 
 export default function TeamsScreen() {
-  const { id } = useLocalSearchParams(); // unique id depending on what event you clicked on
+  const { id } = useLocalSearchParams();
+  const { getToken } = useAuth();
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<number | null>(null);
@@ -79,10 +83,18 @@ export default function TeamsScreen() {
   } | null>(null);
 
   const loadEventAndTeams = async () => {
+    const token = await getToken();
     try {
       // Fetch event
       const eventRes = await fetch(
         `https://inp.pythonanywhere.com/api/events/${id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
       if (!eventRes.ok) throw new Error("Failed to fetch event");
       const eventData = await eventRes.json();
@@ -91,6 +103,13 @@ export default function TeamsScreen() {
       // Fetch teams
       const teamsRes = await fetch(
         `https://inp.pythonanywhere.com/api/teams/${id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
       if (!teamsRes.ok) throw new Error("Failed to fetch teams");
       const teamsData = await teamsRes.json();
@@ -143,12 +162,12 @@ export default function TeamsScreen() {
   const [newTeamName, setNewTeamName] = useState(""); // Team name user is currently creating
   const [newTeamNumber, setNewTeamNumber] = useState(""); // Team number user is creating
 
-  const handleAddTeam = () => {
+  const handleAddTeam = async () => {
     if (newTeamName.trim().length === 0 || newTeamNumber.trim().length === 0)
       return;
 
     setShowForm(false); // Hide the form
-
+    const token = await getToken();
     // Creates new team
     fetch(`https://inp.pythonanywhere.com/api/create-team`, {
       method: "POST",
@@ -160,6 +179,7 @@ export default function TeamsScreen() {
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8",
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
@@ -188,16 +208,18 @@ export default function TeamsScreen() {
     setShowDeleteModal(true); // Show the confirmation modal
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
+    const token = await getToken();
     if (teamToDelete !== null) {
       fetch(`https://inp.pythonanywhere.com/api/delete-team/${teamToDelete}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       })
         .then((data) => {
-          console.log("Event deleted:", data);
+          console.log("Response:", data.status);
           loadEventAndTeams(); // refresh list
         })
         .catch((err) => console.error("Error deleting event:", err));
