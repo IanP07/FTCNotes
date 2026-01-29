@@ -1,6 +1,6 @@
 # FTCNotes
 
-<h2>The best scouting and notetaking app for FTC </h2>
+<h2>The best scouting and notetaking app for FTC Competitions</h2>
 
 ## Technologies
 
