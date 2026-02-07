@@ -118,7 +118,13 @@ export default function TeamsScreen() {
       const teamsWithScores = await Promise.all(
         teamsData.map(async (team: { team_id: number }) => {
           const res = await fetch(
-            `https://inp.pythonanywhere.com/api/info/${team.team_id}`,
+            `https://inp.pythonanywhere.com/api/info/${team.team_id}`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           const scoreData = await res.json();
           const s = scoreData[0] || {
@@ -136,7 +142,7 @@ export default function TeamsScreen() {
         }),
       );
 
-      // Sort + rank
+      // Sort + rank by average score
       const rankedTeams = teamsWithScores
         .sort((a, b) => b.totalScores - a.totalScores)
         .map((team, index) => ({

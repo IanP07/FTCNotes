@@ -9,6 +9,7 @@ import {
   View,
   TextInput,
   useColorScheme,
+  Modal,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -138,25 +139,32 @@ export default function InfoScreen() {
   const [addInfo, setAddInfo] = useState(true); // Initial text on screen
   const [eventID, setEventID] = useState(""); // event_id to return to team_screen
 
-  const [autoScore, setAutoScore] = useState(""); // notes user is currently creating
-  const [teleopScore, setTeleopScore] = useState(""); // notes user is currently creating
-  const [endgameScore, setEndgameScore] = useState(""); // notes user is currently creating
-  const [notes, setNotes] = useState(""); // notes user is currently creating
+  // Info displayed in the UI 
+  const [autoScore, setAutoScore] = useState(""); 
+  const [teleopScore, setTeleopScore] = useState(""); 
+  const [endgameScore, setEndgameScore] = useState(""); 
+  const [notes, setNotes] = useState(""); 
 
-  const handleAddEvent = async () => {
+  // Info that is editable in the modal
+  const [draftAuto, setDraftAuto] = useState("");
+  const [draftTeleop, setDraftTeleop] = useState("");
+  const [draftEndgame, setDraftEndgame] = useState("");
+  const [draftNotes, setDraftNotes] = useState("");
+
+  const handleEditInfo = async () => {
     const token = await getToken();
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log(id);
+    
     fetch(`https://inp.pythonanywhere.com/api/create-info`, {
       method: "POST",
       body: JSON.stringify({
         team_id: id,
         event_id: event_id,
-        auto_score: autoScore,
-        teleop_score: teleopScore,
-        endgame_score: endgameScore,
-        notes: notes,
+        auto_score: draftAuto,
+        teleop_score: draftTeleop,
+        endgame_score: draftEndgame,
+        notes: draftNotes,
       }),
       headers: {
         "Content-type": "application/json",
@@ -171,8 +179,16 @@ export default function InfoScreen() {
         // 'text' is the return response from previous .then statement
         if (text.startsWith("{") || text.startsWith('"E')) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+          // Sets real values to whatever was edited in the modal
+          setAutoScore(draftAuto);
+          setTeleopScore(draftTeleop);
+          setEndgameScore(draftEndgame);
+          setNotes(draftNotes);
+
           console.log("Event created successfully:", text);
           fetchInfo();
+          setShowForm(false);
         } else {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.error("Unexpected response:", text);
@@ -181,17 +197,17 @@ export default function InfoScreen() {
       .catch((error) => {
         console.error("Error posting event:", error);
       });
-
-    // Clears all team info
-    setNotes("");
-    setAutoScore("");
-    setTeleopScore("");
-    setEndgameScore("");
-
-    setShowForm(false); // Hides the form
   };
 
-  const eventSetupFunc = () => {
+  const infoSetupFunc = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Sets modal values to the same as the saved data
+    setDraftAuto(autoScore);
+    setDraftTeleop(teleopScore);
+    setDraftEndgame(endgameScore);
+    setDraftNotes(notes);
+
     setShowForm(true); // shows form to add info
     setAddInfo(false); // hides initial info text
   };
@@ -220,11 +236,11 @@ export default function InfoScreen() {
           >
             {team?.name && team.name.length > 18
               ? team.name.slice(0, 18) + "..."
-              : team?.name}
+              : team?.name} 
           </Text>
         </View>
 
-        <TouchableOpacity activeOpacity={0.3} onPress={eventSetupFunc}>
+        <TouchableOpacity activeOpacity={0.3} onPress={infoSetupFunc}>
           <Image style={styles.editIcon} source={editIcon} />
         </TouchableOpacity>
       </View>
@@ -254,7 +270,7 @@ export default function InfoScreen() {
                 Team #{team?.number}
               </Text>
               <Text style={[styles.smallerText, { color: theme.textColor }]}>
-                Average Score:{" "}
+                Total average:{" "}
                 {Number(autoScore) + Number(teleopScore) + Number(endgameScore)}{" "}
                 points
               </Text>
@@ -567,47 +583,100 @@ export default function InfoScreen() {
         </View>
       )}
 
-      {showForm && ( // Only displays this when plus button is pressed, setting state to true
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%", display: "flex", alignItems: "center" }}
-        >
-          <TextInput
-            placeholder="Enter auto score"
-            placeholderTextColor={theme.textColor}
-            style={[styles.input, { color: theme.textColor }]}
-            value={autoScore}
-            onChangeText={setAutoScore}
-            keyboardType="numeric"
-          />
-          <TextInput
-            placeholder="Enter teleop score"
-            placeholderTextColor={theme.textColor}
-            style={[styles.input, { color: theme.textColor }]}
-            value={teleopScore}
-            onChangeText={setTeleopScore}
-            keyboardType="numeric"
-          />
-          <TextInput
-            placeholder="Enter endgame score"
-            placeholderTextColor={theme.textColor}
-            style={[styles.input, { color: theme.textColor }]}
-            value={endgameScore}
-            onChangeText={setEndgameScore}
-            keyboardType="numeric"
-          />
-          <TextInput
-            placeholder="Enter notes"
-            placeholderTextColor={theme.textColor}
-            style={[styles.input, { color: theme.textColor }]}
-            value={notes}
-            onChangeText={setNotes}
-          />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
-            <Text style={[styles.buttonText]}>Add Info</Text>
-          </TouchableOpacity>
-        </KeyboardAvoidingView>
+      {showForm && ( 
+        // <KeyboardAvoidingView
+        //   behavior={Platform.OS === "ios" ? "padding" : "height"}
+        //   keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        //   style={{ width: "100%", display: "flex", alignItems: "center" }}
+        // >
+        //   <TextInput
+        //     placeholder="Enter auto score"
+        //     placeholderTextColor={theme.textColor}
+        //     style={[styles.input, { color: theme.textColor }]}
+        //     value={autoScore}
+        //     onChangeText={setAutoScore}
+        //     keyboardType="numeric"
+        //   />
+        //   <TextInput
+        //     placeholder="Enter teleop score"
+        //     placeholderTextColor={theme.textColor}
+        //     style={[styles.input, { color: theme.textColor }]}
+        //     value={teleopScore}
+        //     onChangeText={setTeleopScore}
+        //     keyboardType="numeric"
+        //   />
+        //   <TextInput
+        //     placeholder="Enter endgame score"
+        //     placeholderTextColor={theme.textColor}
+        //     style={[styles.input, { color: theme.textColor }]}
+        //     value={endgameScore}
+        //     onChangeText={setEndgameScore}
+        //     keyboardType="numeric"
+        //   />
+        //   <TextInput
+        //     placeholder="Enter notes"
+        //     placeholderTextColor={theme.textColor}
+        //     style={[styles.input, { color: theme.textColor }]}
+        //     value={notes}
+        //     onChangeText={setNotes}
+        //   />
+        //   <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
+        //     <Text style={[styles.buttonText]}>Add Info</Text>
+        //   </TouchableOpacity>
+        // </KeyboardAvoidingView>
+
+        <Modal transparent={true} animationType={"fade"}> 
+          <View style={styles.modalBackdrop}>
+            <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalCard}
+            >
+              <Text style={styles.modalTitle}>Edit Team Info:</Text>
+
+              <Text style={styles.inputText}>Auto Score</Text>
+              <TextInput
+                placeholder="Auto score"
+                value={draftAuto}
+                onChangeText={setDraftAuto}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+              <Text style={styles.inputText}>Teleop Score</Text>
+              <TextInput
+                placeholder="Teleop score"
+                value={draftTeleop}
+                onChangeText={setDraftTeleop}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+              <Text style={styles.inputText}>Endgame Score</Text>
+              <TextInput
+                placeholder="Endgame score"
+                value={draftEndgame}
+                onChangeText={setDraftEndgame}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+              <Text style={styles.inputText}>Notes</Text>
+              <TextInput
+                placeholder="Notes"
+                value={draftNotes}
+                onChangeText={setDraftNotes}
+                style={[styles.input, { height: 100 }]}
+                multiline
+              />
+              <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 10, marginBottom: 12}}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setShowForm(false)}>
+                  <Text style={{fontWeight: "bold", fontSize: 16}}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={handleEditInfo}>
+                  <Text style={{fontWeight: "bold", fontSize: 16}}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </View>
+        </Modal>
+
       )}
     </View>
   );
@@ -619,7 +688,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     flexDirection: "row",
     width: "100%",
-    height: "15%",
   },
 
   container: {
@@ -706,11 +774,17 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
+    borderColor: "#d8d8d8",
+    backgroundColor: "#fafafa",
+    borderRadius: 10,
     padding: 10,
     marginBottom: 10,
-    width: "93%",
+    width: "100%",
+  },
+  inputText: {
+    marginLeft: 2,
+    fontWeight: 600,
+    marginBottom: 5,
   },
   centeredTextContainer: {
     flex: 1,
@@ -736,4 +810,42 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 99,
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    width: "90%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  cancelButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 150,
+    backgroundColor: "fff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#d8d8d8",
+  },
+  saveButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 150,
+    backgroundColor: "rgb(250,200,0)",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#dea300",
+  }
 });
