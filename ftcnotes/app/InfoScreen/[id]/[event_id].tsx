@@ -636,6 +636,7 @@ export default function InfoScreen() {
               <Text style={styles.inputText}>Auto Score</Text>
               <TextInput
                 placeholder="Auto score"
+                placeholderTextColor="#b6b6b6"
                 value={draftAuto}
                 onChangeText={setDraftAuto}
                 keyboardType="numeric"
@@ -644,6 +645,7 @@ export default function InfoScreen() {
               <Text style={styles.inputText}>Teleop Score</Text>
               <TextInput
                 placeholder="Teleop score"
+                placeholderTextColor="#b6b6b6"
                 value={draftTeleop}
                 onChangeText={setDraftTeleop}
                 keyboardType="numeric"
@@ -653,6 +655,7 @@ export default function InfoScreen() {
               <TextInput
                 placeholder="Endgame score"
                 value={draftEndgame}
+                placeholderTextColor="#b6b6b6"
                 onChangeText={setDraftEndgame}
                 keyboardType="numeric"
                 style={styles.input}
@@ -660,6 +663,7 @@ export default function InfoScreen() {
               <Text style={styles.inputText}>Notes</Text>
               <TextInput
                 placeholder="Notes"
+                placeholderTextColor="#b6b6b6"
                 value={draftNotes}
                 onChangeText={setDraftNotes}
                 style={[styles.input, { height: 100 }]}
