@@ -584,47 +584,6 @@ export default function InfoScreen() {
       )}
 
       {showForm && ( 
-        // <KeyboardAvoidingView
-        //   behavior={Platform.OS === "ios" ? "padding" : "height"}
-        //   keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-        //   style={{ width: "100%", display: "flex", alignItems: "center" }}
-        // >
-        //   <TextInput
-        //     placeholder="Enter auto score"
-        //     placeholderTextColor={theme.textColor}
-        //     style={[styles.input, { color: theme.textColor }]}
-        //     value={autoScore}
-        //     onChangeText={setAutoScore}
-        //     keyboardType="numeric"
-        //   />
-        //   <TextInput
-        //     placeholder="Enter teleop score"
-        //     placeholderTextColor={theme.textColor}
-        //     style={[styles.input, { color: theme.textColor }]}
-        //     value={teleopScore}
-        //     onChangeText={setTeleopScore}
-        //     keyboardType="numeric"
-        //   />
-        //   <TextInput
-        //     placeholder="Enter endgame score"
-        //     placeholderTextColor={theme.textColor}
-        //     style={[styles.input, { color: theme.textColor }]}
-        //     value={endgameScore}
-        //     onChangeText={setEndgameScore}
-        //     keyboardType="numeric"
-        //   />
-        //   <TextInput
-        //     placeholder="Enter notes"
-        //     placeholderTextColor={theme.textColor}
-        //     style={[styles.input, { color: theme.textColor }]}
-        //     value={notes}
-        //     onChangeText={setNotes}
-        //   />
-        //   <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
-        //     <Text style={[styles.buttonText]}>Add Info</Text>
-        //   </TouchableOpacity>
-        // </KeyboardAvoidingView>
-
         <Modal transparent={true} animationType={"fade"}> 
           <View style={styles.modalBackdrop}>
             <KeyboardAvoidingView
