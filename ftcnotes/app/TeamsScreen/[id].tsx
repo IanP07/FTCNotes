@@ -360,7 +360,7 @@ export default function TeamsScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%", display: "flex", alignItems: "center" }}
+          style={{ width: "100%", display: "flex", alignItems: "center"}}
         >
           <TextInput
             placeholder="Enter team name"

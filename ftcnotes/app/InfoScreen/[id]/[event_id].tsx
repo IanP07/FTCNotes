@@ -556,6 +556,7 @@ export default function InfoScreen() {
                 {
                   paddingVertical: 10,
                   paddingHorizontal: 10,
+                  marginBottom: 50,
                   alignItems: "flex-start",
                   backgroundColor:
                     colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
@@ -588,49 +589,77 @@ export default function InfoScreen() {
           <View style={styles.modalBackdrop}>
             <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.modalCard}
+            style={[styles.modalCard, {backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",}]}
             >
-              <Text style={styles.modalTitle}>Edit Team Info:</Text>
+              <Text style={[styles.modalTitle, {color: theme.textColor}]}>Edit Team Info:</Text>
 
-              <Text style={styles.inputText}>Auto Score</Text>
+              <Text style={[styles.inputText, {color: theme.textColor}]}>Auto Score</Text>
               <TextInput
                 placeholder="Auto score"
                 placeholderTextColor="#b6b6b6"
                 value={draftAuto}
                 onChangeText={setDraftAuto}
                 keyboardType="numeric"
-                style={styles.input}
+                style={[styles.input, 
+                  {
+                  color: theme.textColor,
+                  backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2", 
+                  borderColor: colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8",
+                  }
+                ]}
               />
-              <Text style={styles.inputText}>Teleop Score</Text>
+              <Text style={[styles.inputText, {color: theme.textColor}]}>Teleop Score</Text>
               <TextInput
                 placeholder="Teleop score"
                 placeholderTextColor="#b6b6b6"
                 value={draftTeleop}
                 onChangeText={setDraftTeleop}
                 keyboardType="numeric"
-                style={styles.input}
+                style={[styles.input, 
+                  {
+                  color: theme.textColor,
+                  backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2", 
+                  borderColor: colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8",
+                  }
+                ]}
               />
-              <Text style={styles.inputText}>Endgame Score</Text>
+              <Text style={[styles.inputText, {color: theme.textColor}]}>Endgame Score</Text>
               <TextInput
                 placeholder="Endgame score"
                 value={draftEndgame}
                 placeholderTextColor="#b6b6b6"
                 onChangeText={setDraftEndgame}
                 keyboardType="numeric"
-                style={styles.input}
+                style={[styles.input, 
+                  {
+                  color: theme.textColor,
+                  backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2", 
+                  borderColor: colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8",
+                  }
+                ]}
               />
-              <Text style={styles.inputText}>Notes</Text>
+              <Text style={[styles.inputText, {color: theme.textColor}]}>Notes</Text>
               <TextInput
                 placeholder="Notes"
                 placeholderTextColor="#b6b6b6"
                 value={draftNotes}
                 onChangeText={setDraftNotes}
-                style={[styles.input, { height: 100 }]}
+                style={[styles.input, 
+                  { 
+                    height: 100,
+                    color: theme.textColor,
+                    backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                    borderColor: colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8", 
+                  }
+                ]}
                 multiline
               />
               <View style={{flexDirection: "row", justifyContent: "space-between", marginTop: 10, marginBottom: 12}}>
-                <TouchableOpacity style={styles.cancelButton} onPress={() => setShowForm(false)}>
-                  <Text style={{fontWeight: "bold", fontSize: 16}}>Cancel</Text>
+                <TouchableOpacity style={[styles.cancelButton, {
+                  backgroundColor: colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                  borderColor: colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8", 
+                }]} onPress={() => setShowForm(false)}>
+                  <Text style={{fontWeight: "bold", fontSize: 16, color: theme.textColor}}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.saveButton} onPress={handleEditInfo}>
                   <Text style={{fontWeight: "bold", fontSize: 16}}>Save</Text>
@@ -781,7 +810,6 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: "90%",
-    backgroundColor: "white",
     padding: 20,
     borderRadius: 12
   },
