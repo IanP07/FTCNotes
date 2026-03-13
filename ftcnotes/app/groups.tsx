@@ -273,7 +273,7 @@ const GroupsScreen = () => {
             <TouchableOpacity onPress={copyJoinCode}>
               <Image
                 source={require("../assets/images/FTCNotesCopyIcon.png")}
-                style={{width: 18, height: 18}}
+                style={{width: 15, height: 15}}
               />
             </TouchableOpacity>
           </View>
