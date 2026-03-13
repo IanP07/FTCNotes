@@ -13,6 +13,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
 import LeaveConfirmationModal from "../components/ui/leaveGroupModal";
 import * as Haptics from "expo-haptics";
+import * as Clipboard from 'expo-clipboard';
 
 const GroupsScreen = () => {
   const [userOrgID, setUserOrgID] = useState<number | null>(null);
@@ -29,6 +30,11 @@ const GroupsScreen = () => {
 
   const { user } = useUser();
   const { getToken } = useAuth();
+
+  // Copies join code to users clipboard
+  const copyJoinCode = async () => {
+    await Clipboard.setStringAsync(`${joinCode}`);
+  }
 
   const getUserInfo = async () => {
     const token = await getToken();
@@ -264,6 +270,12 @@ const GroupsScreen = () => {
             <Text style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}>
               {joinCode}
             </Text>
+            <TouchableOpacity onPress={copyJoinCode}>
+              <Image
+                source={require("../assets/images/FTCNotesCopyIcon.png")}
+                style={{width: 18, height: 18}}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
