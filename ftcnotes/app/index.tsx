@@ -64,6 +64,7 @@ const HomeScreen = () => {
 
         if (!res.ok) {
           console.log("Failed to create user:", await res.text());
+          console.log(`${res.status}`);
         } else {
           console.log("User successfully created!");
         }

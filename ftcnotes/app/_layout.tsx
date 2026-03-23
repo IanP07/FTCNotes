@@ -1,8 +1,12 @@
 import { Stack } from "expo-router";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import { useColorScheme } from "react-native";
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   return (
     <ClerkProvider
       publishableKey="pk_test_ZmFtb3VzLXJvdWdoeS05NC5jbGVyay5hY2NvdW50cy5kZXYk"
@@ -11,6 +15,9 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
+          contentStyle: {
+            backgroundColor: isDark ? "#111827" : "#EFECD7",  
+          },
         }}
       >
         <Stack.Screen name="index" />
