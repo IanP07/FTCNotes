@@ -77,7 +77,7 @@ const HomeScreen = () => {
   }, [isLoaded, isSignedIn, user]);
 
   const switchPage = () => {
-    router.push("/admindashboard");
+    router.push("/onboarding/welcome");
   };
 
   const colorScheme = useColorScheme();
@@ -173,7 +173,7 @@ const HomeScreen = () => {
           ,
         ]}
         activeOpacity={0.3}
-        onPress={onPress}
+        onPress={switchPage}
       >
         <Image style={{ width: 40, height: 40 }} source={googleIcon}></Image>
         <Text style={[styles.buttonText, { color: theme.textColor }]}>
