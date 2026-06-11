@@ -13,6 +13,8 @@ import {
   useColorScheme,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import * as Haptics from "expo-haptics";
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.72;
@@ -86,12 +88,13 @@ function WelcomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const slides = [
-    { key: 'slide1', color: '#1E2A3A' },
-    { key: 'slide2', color: '#1A2E3A' },
-    { key: 'slide3', color: '#1E2A30' },
+    { key: 'slide1', src: require('../../assets/images/myGroup.png') },
+    { key: 'slide2', src: require('../../assets/images/eventList.png') },
+    { key: 'slide3', src: require('../../assets/images/teamInfo.png') },
   ];
 
   const switchPage = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/onboarding/onboarding1');
   };
 
@@ -139,10 +142,14 @@ function WelcomeScreen() {
           style={{ backgroundColor: 'transparent' }}
         >
           {slides.map((slide) => (
-            <View
-              key={slide.key}
-              style={[styles.card, { backgroundColor: slide.color }]}
-            />
+            <View key={slide.key} style={styles.cardWrapper}>
+              <Image
+                style={styles.card}
+                source={slide.src}
+                resizeMode="cover"
+              />
+            </View>
+            
           ))}
         </ScrollView>
 
@@ -229,13 +236,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: CARD_GAP,
   },
-
-  // Card
-  card: {
-    width: CARD_WIDTH,
-    height: 420,
+  cardWrapper: {
     borderRadius: 20,
+    overflow: 'hidden', // Keeps it safe for iOS clip masking
+    width: CARD_WIDTH,
+    height: 450,
+    backgroundColor: '#1c1c1e',
   },
+  card: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20, 
+    opacity: 0.99,
+  },
+
 
   // Dots
   dotsRow: {

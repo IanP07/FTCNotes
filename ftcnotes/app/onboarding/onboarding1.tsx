@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import * as Haptics from "expo-haptics";
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -19,9 +21,6 @@ function Onboarding1() {
     colorScheme === 'dark'
       ? { background: '#111827', textColor: '#EFECD7' }
       : { background: '#F3F3F3', textColor: '#000000' };
-
-  const goBack = () => router.back();
-  const goNext = () => router.push('/onboarding/onboarding2');
 
   return (
     <View style={styles.container}>
@@ -68,7 +67,7 @@ function Onboarding1() {
       {/* Bottom buttons */}
       <View style={styles.buttonRow}>
         <TouchableOpacity 
-            onPress={goBack} 
+            onPress={() => router.back()} 
             style={[styles.backButton, {
                 backgroundColor:
                       colorScheme === "dark" ? "rgb(33,40,55)" : "",
@@ -80,7 +79,11 @@ function Onboarding1() {
             activeOpacity={0.85}>
           <Text style={[styles.backText, {color: theme.textColor}]}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={goNext} style={styles.continueButton} activeOpacity={0.85}>
+        <TouchableOpacity onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/onboarding/onboarding2');
+          }} 
+          style={styles.continueButton} activeOpacity={0.85}>
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>

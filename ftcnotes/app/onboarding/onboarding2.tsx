@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import * as Haptics from "expo-haptics";
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -76,7 +78,11 @@ function Onboarding2() {
           activeOpacity={0.85}>
           <Text style={[styles.backText, { color: theme.textColor }]}>Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={goNext} style={styles.continueButton} activeOpacity={0.85}>
+        <TouchableOpacity onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/onboarding/onboarding3');
+          }} 
+          style={styles.continueButton} activeOpacity={0.85}>
           <Text style={styles.continueText}>Continue</Text>
         </TouchableOpacity>
       </View>
