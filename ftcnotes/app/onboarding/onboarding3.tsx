@@ -64,7 +64,10 @@ function Onboarding3() {
       </Text>
 
       {/* Placeholder card */}
-      <View style={styles.card} />
+      <Image 
+        source={require("../../assets/images/teamInfo.png")} 
+        style={styles.card} 
+      />
 
       {/* Bottom buttons */}
       <View style={styles.buttonRow}>
@@ -155,7 +158,7 @@ const styles = StyleSheet.create({
 
   card: {
     flex: 1,
-    width: SCREEN_WIDTH * 0.82,
+    width: SCREEN_WIDTH * 0.72,
     backgroundColor: '#1E2A3A',
     borderRadius: 20,
     marginBottom: 32,

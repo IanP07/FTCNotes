@@ -28,7 +28,10 @@ function Onboarding1() {
       {/* Header — logo pinned to top-left */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
-          <View style={styles.logoIconBox} />
+          <Image 
+            source={require("../../assets/images/FTCNotesIcon.png")} 
+            style={styles.logoIconBox} 
+          />
           <Text style={[styles.logoText, { color: theme.textColor }]}>FTCNotes</Text>
         </View>
       </View>
@@ -62,7 +65,10 @@ function Onboarding1() {
       </Text>
 
       {/* Placeholder card */}
-      <View style={styles.card} />
+      <Image 
+        style={styles.card} 
+        source={require("../../assets/images/myGroup.png")}
+      />
 
       {/* Bottom buttons */}
       <View style={styles.buttonRow}>
@@ -113,8 +119,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoIconBox: {
-    backgroundColor: '#F5C518',
-    borderRadius: 8,
     width: 32,
     height: 32,
     marginRight: 8,
@@ -160,9 +164,8 @@ const styles = StyleSheet.create({
   // Placeholder card
   card: {
     flex: 1,
-    width: SCREEN_WIDTH * 0.82,
-    backgroundColor: '#1E2A3A',
-    borderRadius: 20,
+    width: SCREEN_WIDTH * 0.8,
+    borderRadius: 10,
     marginBottom: 32,
   },
 

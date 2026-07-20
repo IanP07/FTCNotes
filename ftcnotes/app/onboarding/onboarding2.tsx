@@ -65,7 +65,10 @@ function Onboarding2() {
       </Text>
 
       {/* Placeholder card */}
-      <View style={styles.card} />
+      <Image 
+        source={require("../../assets/images/eventList.png")} 
+        style={styles.card} 
+      />
 
       {/* Bottom buttons */}
       <View style={styles.buttonRow}>
@@ -155,8 +158,7 @@ const styles = StyleSheet.create({
 
   card: {
     flex: 1,
-    width: SCREEN_WIDTH * 0.82,
-    backgroundColor: '#1E2A3A',
+    width: SCREEN_WIDTH * 0.75,
     borderRadius: 20,
     marginBottom: 32,
   },
