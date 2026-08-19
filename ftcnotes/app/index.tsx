@@ -90,7 +90,7 @@ const HomeScreen = () => {
               if (isNewUser) {
                 router.replace("/onboarding/welcome"); // New user screen
               } else {
-                router.replace("/onboarding/welcome"); // Existing user screen
+                router.replace("/groups"); // Existing user screen
               }
             } else {
               // if it doesnt load user quick enough
