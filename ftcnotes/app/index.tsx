@@ -1,5 +1,4 @@
-import React, { useCallback } from "react";
-import { useState, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,11 +6,9 @@ import {
   Image,
   TouchableOpacity,
   useColorScheme,
-  Alert,
   Platform,
 } from "react-native";
-import { Href, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
 import { useSSO, useUser } from "@clerk/clerk-expo";
@@ -25,7 +22,6 @@ export const useWarmUpBrowser = () => {
     if (Platform.OS !== "android") return;
     void WebBrowser.warmUpAsync();
     return () => {
-      // Cleanup: closes browser when component unmounts
       void WebBrowser.coolDownAsync();
     };
   }, []);
@@ -33,123 +29,89 @@ export const useWarmUpBrowser = () => {
 
 const HomeScreen = () => {
   useWarmUpBrowser();
-
   const router = useRouter();
-  const { isLoaded, isSignedIn, user } = useUser();
-
-  // Sends create user request to backend
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn) {
-      return;
-    }
-
-    const createUser = async () => {
-      try {
-        const res = await fetch(
-          "https://inp.pythonanywhere.com/api/create-user",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name: user.fullName,
-              user_id: user.id,
-              email:
-                user.primaryEmailAddress?.emailAddress ||
-                user.emailAddresses[0]?.emailAddress,
-            }),
-          },
-        );
-
-        if (!res.ok) {
-          console.log("Failed to create user:", await res.text());
-          console.log(`${res.status}`);
-        } else {
-          console.log("User successfully created!");
-        }
-      } catch (error) {
-        console.log("Error: ", error);
-      }
-    };
-
-    createUser();
-  }, [isLoaded, isSignedIn, user]);
-
-  const switchPage = () => {
-    router.push("/admindashboard");
-  };
-
   const colorScheme = useColorScheme();
+  const { startSSOFlow } = useSSO();
+  const { isLoaded, isSignedIn } = useUser();
 
-  const lightTheme = {
-    background: "#F3F3F3",
-    textColor: "#000000",
-  };
-
-  const darkTheme = {
-    background: "#111827",
-    textColor: "#EFECD7",
-  };
-
+  const lightTheme = { background: "#F3F3F3", textColor: "#000000" };
+  const darkTheme = { background: "#111827", textColor: "#EFECD7" };
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
   const googleIcon = require("../assets/images/googleIcon.svg.png");
 
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
+  // Helper function to create user and get is_new_user field
+  const syncUserWithBackend = async (clerkUser: any) => {
+    try {
+      const res = await fetch("https://inp.pythonanywhere.com/api/create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: clerkUser.fullName,
+          user_id: clerkUser.id,
+          email:
+            clerkUser.primaryEmailAddress?.emailAddress ||
+            clerkUser.emailAddresses[0]?.emailAddress,
+        }),
+      });
 
-  const { startSSOFlow } = useSSO();
+      if (res.ok) {
+        const data = await res.json();
+        return data.is_new_user;
+      } else {
+        console.log("Failed to sync user with backend:", await res.text());
+        return false;
+      }
+    } catch (error) {
+      console.log("Backend synchronization error: ", error);
+      return false;
+    }
+  };
 
-  // Redirects users that are already signed in
+  const onPress = useCallback(async () => {
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+        redirectUrl: AuthSession.makeRedirectUri({
+          scheme: "myapp",
+          path: "redirect",
+        }),
+      });
+
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async ({ session }) => {
+            const clerkUser = session?.user;
+
+            if (clerkUser) {
+              // Send data to backend and get sign-up vs sign-in distinction
+              const isNewUser = await syncUserWithBackend(clerkUser);
+
+              if (isNewUser) {
+                router.replace("/onboarding/welcome"); // New user screen
+              } else {
+                router.replace("/onboarding/welcome"); // Existing user screen
+              }
+            } else {
+              // if it doesnt load user quick enough
+              router.replace("/groups");
+            }
+          },
+        });
+      }
+    } catch (err) {
+      console.error("OAuth Error:", err);
+      WebBrowser.dismissBrowser();
+    }
+  }, [startSSOFlow, router]);
+
+  // if they open the app already logged in
   useEffect(() => {
     if (!isLoaded) return;
-
     if (isSignedIn) {
       router.replace("/groups");
     }
   }, [isLoaded, isSignedIn, router]);
-
-  const onPress = useCallback(async () => {
-    try {
-      // Start the authentication process by calling `startSSOFlow()`
-      const { createdSessionId, setActive, signIn, signUp } =
-        await startSSOFlow({
-          strategy: "oauth_google",
-          // For wb, defaults to current path
-          // For native, you must pass a scheme, like AuthSession.makeRedirectUri({ scheme, path })
-          // For more info, see https://docs.expo.dev/versions/latest/sdk/auth-session/#authsessionmakeredirecturioptions
-          redirectUrl: AuthSession.makeRedirectUri({
-            scheme: "myapp",
-            path: "redirect",
-          }),
-        });
-
-      // If sign in was successful, set the active session
-      if (createdSessionId) {
-        setActive!({
-          session: createdSessionId,
-          // Check for session tasks and navigate to custom UI to help users resolve them
-          // See https://clerk.com/docs/guides/development/custom-flows/overview#session-tasks
-          navigate: async ({ session }) => {
-            if (session?.currentTask) {
-              console.log(session?.currentTask);
-              router.push("/groups");
-              return;
-            }
-            router.push("/groups");
-          },
-        });
-      } else {
-        // If there is no `createdSessionId`,
-        // there are missing requirements, such as MFA
-        // See https://clerk.com/docs/guides/development/custom-flows/authentication/oauth-connections#handle-missing-requirements
-      }
-    } catch (err) {
-      // See https://clerk.com/docs/guides/development/custom-flows/error-handling
-      // for more info on error handling
-      console.error("OAuth Error:", err);
-      console.error(JSON.stringify(err, null, 2));
-      WebBrowser.dismissBrowser();
-    }
-  }, [startSSOFlow, router]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -159,7 +121,7 @@ const HomeScreen = () => {
         source={require("../assets/images/FTCNotesIcon.png")}
       />
 
-      <TouchableOpacity // button class with more functionality
+      <TouchableOpacity
         style={[
           styles.button,
           {
@@ -170,14 +132,13 @@ const HomeScreen = () => {
                 ? "rgba(255,255,255,0.2)"
                 : "rgba(0,0,0,0.2)",
           },
-          ,
         ]}
         activeOpacity={0.3}
-        onPress={onPress}
+        onPress={onPress} // Reverted back to onboarding authentication flow
       >
-        <Image style={{ width: 40, height: 40 }} source={googleIcon}></Image>
+        <Image style={{ width: 40, height: 40 }} source={googleIcon} />
         <Text style={[styles.buttonText, { color: theme.textColor }]}>
-          Signin with Google
+          Sign in with Google
         </Text>
       </TouchableOpacity>
     </View>
@@ -188,9 +149,9 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Makes <View></View> tag fill screen
+    flex: 1,
     flexDirection: "column",
-    justifyContent: "center", // centers all content within this
+    justifyContent: "center",
     alignItems: "center",
   },
   image: {
@@ -204,11 +165,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-
   buttonText: {
     color: "black",
     fontSize: 19,
-    fontWeight: "semibold",
+    fontWeight: "600",
     textAlign: "center",
   },
   button: {
@@ -218,12 +178,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     minHeight: 40,
     margin: 20,
-    display: "flex",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "rgb(33,40,55)",
-    borderColor: "rgba(255,255,255,0.2)",
     borderStyle: "solid",
     borderWidth: 1,
   },
