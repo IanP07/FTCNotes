@@ -30,7 +30,10 @@ function Onboarding3() {
       {/* Header — logo pinned to top-left */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
-          <View style={styles.logoIconBox} />
+          <Image 
+            source={require("../../assets/images/FTCNotesIcon.png")} 
+            style={styles.logoIconBox} 
+          />
           <Text style={[styles.logoText, { color: theme.textColor }]}>FTCNotes</Text>
         </View>
       </View>
