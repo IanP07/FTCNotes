@@ -238,7 +238,7 @@ const dashboardMembersScreen = () => {
                     style={{ width: 18, height: 18 }}
                   />
                   <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                    {memberCount} Members
+                    {memberCount} {memberCount === 1 ? "Member" : "Members"}
                   </Text>
                 </View>
                 <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
@@ -247,7 +247,7 @@ const dashboardMembersScreen = () => {
                     style={{ width: 18, height: 18 }}
                   />
                   <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                    {eventCount} Events
+                    {eventCount} {eventCount === 1 ? "Event" : "Events"}
                   </Text>
                 </View>
               </View>
@@ -272,6 +272,44 @@ const dashboardMembersScreen = () => {
                   {joinCode}
                 </Text>
               </View>
+            </View>
+            <View
+              style={[
+                  styles.bubble,
+                  {
+                    alignItems: "center",
+                    backgroundColor:
+                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                    borderColor:
+                      colorScheme === "dark"
+                        ? "rgba(255,255,255,0.2)"
+                        : "rgba(0,0,0,0.2)",
+                  },
+                ]}
+            >
+              <View
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    marginLeft: 10,
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: theme.textColor,
+                    }}
+                  >
+                    {user?.fullName}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                  >
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </Text>
+                </View>
             </View>
             {currentMembers.map((member, index) => (
               <View
