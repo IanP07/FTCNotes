@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams, Href } from "expo-router";
@@ -27,6 +28,7 @@ export default function TeamsScreen() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const colorScheme = useColorScheme(); // accesses users current system color scheme
   const lightTheme = {
@@ -83,6 +85,8 @@ export default function TeamsScreen() {
   } | null>(null);
 
   const loadEventAndTeams = async () => {
+    setLoading(true);
+
     const token = await getToken();
     try {
       // Fetch event
@@ -153,6 +157,8 @@ export default function TeamsScreen() {
       setTeams(rankedTeams);
     } catch (err) {
       console.error("Error loading teams screen:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -272,72 +278,92 @@ export default function TeamsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.headerText}>{event?.name}</Text>
-        <Text
-          style={[
-            styles.headerSubText,
-            { color: colorScheme === "dark" ? "#ffffff" : "#474747" },
-          ]}
-        >
-          {event?.date} • {event?.location}
-        </Text>
+      {loading ? (
+  <View
+    style={{
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <ActivityIndicator
+      size="large"
+      color={theme.textColor}
+    />
+  </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.headerText}>{event?.name}</Text>
 
-        <View style={styles.line}></View>
-        {teams.map((team, index) => (
-          <View key={index} style={{ position: "relative" }}>
-            <View style={styles.actionRow}>
-              <View style={styles.rankWrapper}>
-                <Text style={{ color: "white" }}>#{team?.rank}</Text>
+          <Text
+            style={[
+              styles.headerSubText,
+              { color: colorScheme === "dark" ? "#ffffff" : "#474747" },
+            ]}
+          >
+            {event?.date} • {event?.location}
+          </Text>
+
+          <View style={styles.line}></View>
+
+          {teams.map((team, index) => (
+            <View key={index} style={{ position: "relative" }}>
+              <View style={styles.actionRow}>
+                <View style={styles.rankWrapper}>
+                  <Text style={{ color: "white" }}>#{team?.rank}</Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => handleDeleteTeam(team.team_id)}
+                  style={styles.deleteButtonWrapper}
+                >
+                  <Image
+                    source={require("../../assets/images/TrashIconWhite.png")}
+                    style={styles.deleteButton}
+                  />
+                </TouchableOpacity>
               </View>
 
               <TouchableOpacity
-                onPress={() => handleDeleteTeam(team.team_id)}
-                style={styles.deleteButtonWrapper}
-              >
-                <Image
-                  source={require("../../assets/images/TrashIconWhite.png")}
-                  style={styles.deleteButton}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.button,
-                { borderWidth: colorScheme === "light" ? 1 : 0 },
-              ]}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                infoPage(team.team_id, team.event_id);
-              }}
-            >
-              <Text style={styles.TeamNameText}>{team.name}</Text>
-              <Text style={[styles.buttonText, { marginBottom: 10 }]}>
-                Team #{team.number}
-              </Text>
-
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
+                style={[
+                  styles.button,
+                  { borderWidth: colorScheme === "light" ? 1 : 0 },
+                ]}
+                onPress={() => {
+                  Haptics.impactAsync(
+                    Haptics.ImpactFeedbackStyle.Light
+                  );
+                  infoPage(team.team_id, team.event_id);
                 }}
               >
-                <Image
-                  source={require("../../assets/images/avgIcon3.png")}
-                  style={styles.avgButton}
-                />
-                <Text style={{ fontWeight: "600", fontSize: 15 }}>
-                  Avg: {team?.totalScores} pts
+                <Text style={styles.TeamNameText}>{team.name}</Text>
+
+                <Text style={[styles.buttonText, { marginBottom: 10 }]}>
+                  Team #{team.number}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
+
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Image
+                    source={require("../../assets/images/avgIcon3.png")}
+                    style={styles.avgButton}
+                  />
+
+                  <Text style={{ fontWeight: "600", fontSize: 15 }}>
+                    Avg: {team?.totalScores} pts
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
 
       {showDeleteModal && (
         <DeleteConfirmationModal
@@ -348,7 +374,7 @@ export default function TeamsScreen() {
         />
       )}
 
-      {teams.length === 0 && (
+      {!loading && teams.length === 0 && (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
             Add Teams Here!

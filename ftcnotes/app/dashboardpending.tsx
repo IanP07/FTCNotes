@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
@@ -41,6 +42,8 @@ const dashboardPendingScreen = () => {
     }[]
   >([]);
 
+  const [loading, setLoading] = useState(true);
+
   const [orgID, setOrgID] = useState("");
 
   const denyRequest = async (user_id: string) => {
@@ -58,7 +61,10 @@ const dashboardPendingScreen = () => {
       .then((response) => {
         if (response.status === 200) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          console.log("Success!");
+
+          setPendingMembers((currentMembers) =>
+            currentMembers.filter((member) => member.user_id !== user_id)
+          );
         } else {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           console.log(response.status);
@@ -85,7 +91,10 @@ const dashboardPendingScreen = () => {
       .then((response) => {
         if (response.status === 200) {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          console.log("Success!");
+
+          setPendingMembers((currentMembers) =>
+            currentMembers.filter((member) => member.user_id !== user_id)
+          );
         } else {
           console.log(response.status);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -131,7 +140,10 @@ const dashboardPendingScreen = () => {
     if (!user?.id) return;
 
     const fetchPendingMembers = async () => {
+      setLoading(true);
+
       const token = await getToken();
+
       try {
         const res = await fetch(
           `https://inp.pythonanywhere.com/api/organizations/pending-requests`,
@@ -145,17 +157,22 @@ const dashboardPendingScreen = () => {
         );
 
         if (!res.ok) {
-          throw new Error(`Failed to fetch pending members: ${res.status}`);
+          throw new Error(
+            `Failed to fetch pending members: ${res.status}`
+          );
         }
 
         const data = await res.json();
         setPendingMembers(data.pending_requests);
       } catch (error) {
         console.log(`Error calling endpoint: ${error}`);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchPendingMembers();
-  }, [user?.id, denyRequest, approveRequest]);
+  }, [user?.id]);
 
   return (
     <View
@@ -225,81 +242,115 @@ const dashboardPendingScreen = () => {
         </Text>
         {/* pending member bubbles */}
         <ScrollView>
-          {pendingMembers.map((member, index) => (
+          {loading ? (
             <View
-              key={index}
-              style={[
-                styles.bubble,
-                {
-                  alignItems: "center",
-                  backgroundColor:
-                    colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                  borderColor:
-                    colorScheme === "dark"
-                      ? "rgba(255,255,255,0.2)"
-                      : "rgba(0,0,0,0.2)",
-                },
-              ]}
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                paddingTop: 40,
+              }}
             >
-              <View
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  marginLeft: 10,
-                  flex: 1,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: theme.textColor,
-                  }}
-                >
-                  {member.name}
-                </Text>
-                <Text
-                  style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
-                >
-                  {member.email}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  display: "flex",
-                  marginLeft: "auto",
-                  flexDirection: "row",
-                  gap: 20,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    approveRequest(member.user_id);
-                  }}
-                >
-                  <View style={styles.greenBubbleBackground}>
-                    <Image
-                      style={{ width: 15, height: 15 }}
-                      source={checkIcon}
-                    />
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    denyRequest(member.user_id);
-                  }}
-                >
-                  <View style={styles.redBubbleBackground}>
-                    <Image style={{ width: 20, height: 20 }} source={xIcon} />
-                  </View>
-                </TouchableOpacity>
-              </View>
+              <ActivityIndicator
+                size="large"
+                color={theme.textColor}
+              />
             </View>
-          ))}
+          ) : pendingMembers.length === 0 ? (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                paddingTop: 40,
+                paddingHorizontal: 20,
+              }}
+            >
+              <Text
+                style={{
+                  color: theme.textColor,
+                  fontSize: 18,
+                  textAlign: "center",
+                }}
+              >
+                No Pending Requests
+              </Text>
+            </View>
+          ) : (
+              pendingMembers.map((member, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.bubble,
+                  {
+                    alignItems: "center",
+                    backgroundColor:
+                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                    borderColor:
+                      colorScheme === "dark"
+                        ? "rgba(255,255,255,0.2)"
+                        : "rgba(0,0,0,0.2)",
+                  },
+                ]}
+              >
+                <View
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    marginLeft: 10,
+                    flex: 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: theme.textColor,
+                    }}
+                  >
+                    {member.name}
+                  </Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                  >
+                    {member.email}
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    display: "flex",
+                    marginLeft: "auto",
+                    flexDirection: "row",
+                    gap: 20,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      approveRequest(member.user_id);
+                    }}
+                  >
+                    <View style={styles.greenBubbleBackground}>
+                      <Image
+                        style={{ width: 15, height: 15 }}
+                        source={checkIcon}
+                      />
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      denyRequest(member.user_id);
+                    }}
+                  >
+                    <View style={styles.redBubbleBackground}>
+                      <Image style={{ width: 20, height: 20 }} source={xIcon} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
         </ScrollView>
       </View>
     </View>

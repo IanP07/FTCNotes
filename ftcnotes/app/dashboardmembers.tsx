@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
@@ -37,6 +38,7 @@ const dashboardMembersScreen = () => {
   const [joinCode, setJoinCode] = useState(null);
   const [eventCount, setEventCount] = useState(null);
   const [userOrgID, setUserOrgID] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [currentMembers, setCurrentMembers] = useState<
     {
@@ -62,7 +64,10 @@ const dashboardMembersScreen = () => {
       });
       const data = await res.json();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      console.log(data);
+      
+      setCurrentMembers((currentMembers) =>
+        currentMembers.filter((member) => member.user_id !== kickedMemberID)
+      );
     } catch (error) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       console.log(`Error kicking member ${error}`);
@@ -73,6 +78,8 @@ const dashboardMembersScreen = () => {
     if (!user?.id) return;
 
     const fetchDashboardData = async () => {
+      setLoading(true);
+
       const token = await getToken();
       try {
         // Getting user info
@@ -141,10 +148,12 @@ const dashboardMembersScreen = () => {
         setCurrentMembers(membersData);
       } catch (error) {
         console.log(`Error fetching dashboard data: ${error}`);
+      } finally {
+        setLoading(false);
       }
     };
     fetchDashboardData();
-  }, [user?.id, kickMember]);
+  }, [user?.id]);
 
   return (
     <View
@@ -201,179 +210,194 @@ const dashboardMembersScreen = () => {
         }}
       >
         {/* current member bubbles */}
-        <ScrollView style={{ display: "flex" }}>
-          <View style={{ width: "100%", alignItems: "center" }}>
-            <View
-              style={[
-                styles.groupCard,
-                { borderWidth: colorScheme === "light" ? 1 : 1 },
-              ]}
-            >
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  marginBottom: 15,
-                }}
-              >
-                <View style={{ flex: 1, flexShrink: 1 }}>
-                  <Text
-                    style={{
-                      color: "black",
-                      fontSize: 18,
-                      fontWeight: 500,
-                    }}
-                  >
-                    {orgName}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
-                <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
-                  <Image
-                    source={require("../assets/images/MemberIcon.png")}
-                    style={{ width: 18, height: 18 }}
-                  />
-                  <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                    {memberCount} {memberCount === 1 ? "Member" : "Members"}
-                  </Text>
-                </View>
-                <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
-                  <Image
-                    source={require("../assets/images/CalendarIcon.png")}
-                    style={{ width: 18, height: 18 }}
-                  />
-                  <Text style={{ fontSize: 15, fontWeight: 600 }}>
-                    {eventCount} {eventCount === 1 ? "Event" : "Events"}
-                  </Text>
-                </View>
-              </View>
-
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  gap: 8,
-                  alignItems: "center",
-                  marginTop: 20,
-                }}
-              >
-                <Text
-                  style={{ fontSize: 15, fontWeight: 600, color: "#3A3A3A" }}
-                >
-                  Join Code:
-                </Text>
-                <Text
-                  style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}
-                >
-                  {joinCode}
-                </Text>
-              </View>
-            </View>
-            <View
-              style={[
-                  styles.bubble,
-                  {
-                    alignItems: "center",
-                    backgroundColor:
-                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                    borderColor:
-                      colorScheme === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.2)",
-                  },
-                ]}
-            >
-              <View
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    marginLeft: 10,
-                    flex: 1,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 500,
-                      color: theme.textColor,
-                    }}
-                  >
-                    {user?.fullName}
-                  </Text>
-                  <Text
-                    style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
-                  >
-                    {user?.primaryEmailAddress?.emailAddress}
-                  </Text>
-                </View>
-            </View>
-            {currentMembers.map((member, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.bubble,
-                  {
-                    alignItems: "center",
-                    backgroundColor:
-                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
-                    borderColor:
-                      colorScheme === "dark"
-                        ? "rgba(255,255,255,0.2)"
-                        : "rgba(0,0,0,0.2)",
-                  },
-                ]}
-              >
-                <View
-                  style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    marginLeft: 10,
-                    flex: 1,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 500,
-                      color: theme.textColor,
-                    }}
-                  >
-                    {member.name}
-                  </Text>
-                  <Text
-                    style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
-                  >
-                    {member.email}
-                  </Text>
-                </View>
-
-                <View
-                  style={{
-                    display: "flex",
-                    marginLeft: "auto",
-                    flexDirection: "row",
-                    gap: 20,
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      kickMember(member.user_id);
-                    }}
-                  >
-                    <View style={styles.redBubbleBackground}>
-                      <Image style={{ width: 20, height: 20 }} source={xIcon} />
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+        {loading ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={theme.textColor}
+            />
           </View>
-        </ScrollView>
+        ) : (
+          <ScrollView style={{ display: "flex" }}>
+              <View style={{ width: "100%", alignItems: "center" }}>
+                <View
+                  style={[
+                    styles.groupCard,
+                    { borderWidth: colorScheme === "light" ? 1 : 1 },
+                  ]}
+                >
+                  <View
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      marginBottom: 15,
+                    }}
+                  >
+                    <View style={{ flex: 1, flexShrink: 1 }}>
+                      <Text
+                        style={{
+                          color: "black",
+                          fontSize: 18,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {orgName}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
+                    <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
+                      <Image
+                        source={require("../assets/images/MemberIcon.png")}
+                        style={{ width: 18, height: 18 }}
+                      />
+                      <Text style={{ fontSize: 15, fontWeight: 600 }}>
+                        {memberCount} {memberCount === 1 ? "Member" : "Members"}
+                      </Text>
+                    </View>
+                    <View style={{ display: "flex", flexDirection: "row", gap: 6 }}>
+                      <Image
+                        source={require("../assets/images/CalendarIcon.png")}
+                        style={{ width: 18, height: 18 }}
+                      />
+                      <Text style={{ fontSize: 15, fontWeight: 600 }}>
+                        {eventCount} {eventCount === 1 ? "Event" : "Events"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      gap: 8,
+                      alignItems: "center",
+                      marginTop: 20,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 15, fontWeight: 600, color: "#3A3A3A" }}
+                    >
+                      Join Code:
+                    </Text>
+                    <Text
+                      style={{ fontSize: 18, fontWeight: 600, marginBottom: 2 }}
+                    >
+                      {joinCode}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={[
+                      styles.bubble,
+                      {
+                        alignItems: "center",
+                        backgroundColor:
+                          colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                        borderColor:
+                          colorScheme === "dark"
+                            ? "rgba(255,255,255,0.2)"
+                            : "rgba(0,0,0,0.2)",
+                      },
+                    ]}
+                >
+                  <View
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        marginLeft: 10,
+                        flex: 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 500,
+                          color: theme.textColor,
+                        }}
+                      >
+                        {user?.fullName}
+                      </Text>
+                      <Text
+                        style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                      >
+                        {user?.primaryEmailAddress?.emailAddress}
+                      </Text>
+                    </View>
+                </View>
+                {currentMembers.map((member, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.bubble,
+                      {
+                        alignItems: "center",
+                        backgroundColor:
+                          colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                        borderColor:
+                          colorScheme === "dark"
+                            ? "rgba(255,255,255,0.2)"
+                            : "rgba(0,0,0,0.2)",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-start",
+                        marginLeft: 10,
+                        flex: 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 500,
+                          color: theme.textColor,
+                        }}
+                      >
+                        {member.name}
+                      </Text>
+                      <Text
+                        style={{ fontSize: 14, fontWeight: 500, color: "#6E6E6E" }}
+                      >
+                        {member.email}
+                      </Text>
+                    </View>
+
+                    <View
+                      style={{
+                        display: "flex",
+                        marginLeft: "auto",
+                        flexDirection: "row",
+                        gap: 20,
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          kickMember(member.user_id);
+                        }}
+                      >
+                        <View style={styles.redBubbleBackground}>
+                          <Image style={{ width: 20, height: 20 }} source={xIcon} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+          </ScrollView>
+        )}
       </View>
     </View>
   );

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   TextInput,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -30,6 +31,7 @@ export default function EventsScreen() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const { getToken } = useAuth();
 
@@ -106,6 +108,8 @@ export default function EventsScreen() {
   };
 
   const fetchEvents = async (orgId: number) => {
+    setLoading(true);
+    
     const token = await getToken();
     try {
       const res = await fetch(
@@ -143,6 +147,8 @@ export default function EventsScreen() {
       setEvents(eventsWithCounts);
     } catch (error) {
       console.log("Error fetching events", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -433,13 +439,17 @@ export default function EventsScreen() {
         />
       )}
 
-      {events.length === 0 && (
+      {loading ? (
+        <View style={styles.centeredTextContainer}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : events.length === 0 ? (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
             Add FTC Events Here!
           </Text>
         </View>
-      )}
+      ) : null}
 
       {showForm && ( // Only displays this when plus button is pressed, setting state to true
         <KeyboardAvoidingView
