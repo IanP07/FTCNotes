@@ -91,7 +91,7 @@ const CreateGroupsScreen = () => {
       <View style={styles.topbar}>
         <TouchableOpacity
           activeOpacity={0.3}
-          onPress={() => router.push("/groups")}
+          onPress={() => router.back()}
         >
           <Image style={styles.backIcon} source={backIcon} />
         </TouchableOpacity>

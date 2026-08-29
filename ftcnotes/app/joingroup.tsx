@@ -70,7 +70,7 @@ const JoinGroupsScreen = () => {
         Alert.alert("Failed to create organization");
       } else {
         Alert.alert("Organization created successfully!");
-        router.replace("/groups"); // 👈 navigates to groups screen
+        router.replace("/groups"); 
       }
     } catch (error) {
       console.log("error: ", error);
@@ -91,7 +91,7 @@ const JoinGroupsScreen = () => {
       <View style={styles.topbar}>
         <TouchableOpacity
           activeOpacity={0.3}
-          onPress={() => router.push("/groups")}
+          onPress={() => router.back()}
         >
           <Image style={styles.backIcon} source={backIcon} />
         </TouchableOpacity>
