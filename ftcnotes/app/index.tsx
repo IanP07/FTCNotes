@@ -48,6 +48,7 @@ const HomeScreen = () => {
   const darkTheme = { background: "#111827", textColor: "#EFECD7" };
   const theme = colorScheme === "dark" ? darkTheme : lightTheme;
   const googleIcon = require("../assets/images/googleIcon.svg.png");
+  const appleIcon = colorScheme === "dark" ? require("../assets/images/appleBlack.png") : require("../assets/images/appleWhite.png");
 
   // Email/password state
   const [email, setEmail] = useState("");
@@ -122,6 +123,30 @@ const HomeScreen = () => {
       }
     } catch (err) {
       console.error("OAuth Error:", err);
+      WebBrowser.dismissBrowser();
+    }
+  }, [startSSOFlow, router]);
+
+  const onApplePress = useCallback(async () => {
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_apple",
+        redirectUrl: AuthSession.makeRedirectUri({
+          scheme: "myapp",
+          path: "redirect",
+        }),
+      });
+
+      if (createdSessionId && setActive) {
+        await setActive({
+          session: createdSessionId,
+          navigate: async ({ session }) => {
+            await routeAfterAuth(session?.user);
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Apple OAuth Error:", err);
       WebBrowser.dismissBrowser();
     }
   }, [startSSOFlow, router]);
@@ -241,9 +266,15 @@ const HomeScreen = () => {
     }
   }, [verificationCode, signUp, signUpLoaded]);
 
-  const inputBackground = colorScheme === "dark" ? "rgb(33,40,55)" : "#ffffff";
+  const inputBackground = colorScheme === "dark" ? "rgb(33,40,55)" : "#efeeee";
   const inputBorder =
     colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)";
+
+  // Apple's own guidelines: the button should be pure black-on-white or
+  // white-on-black, matching the system color scheme rather than the app's
+  // custom theme colors.
+  const appleButtonBackground = colorScheme === "dark" ? "#ffffff" : "#000000";
+  const appleButtonForeground = colorScheme === "dark" ? "#000000" : "#ffffff";
 
   return (
     <KeyboardAvoidingView
@@ -255,14 +286,55 @@ const HomeScreen = () => {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-      <Text style={[styles.text, { color: theme.textColor }]}>FTC Notes</Text>
       <Image
         style={styles.image}
         source={require("../assets/images/FTCNotesIcon.png")}
       />
+      <Text style={[styles.text, { color: theme.textColor }]}>FTC Notes</Text>
+      <Text style={[styles.subText, {color: "#888e98"}]}>Sign in to continue</Text>
+
 
       {!pendingVerification ? (
         <>
+          {/* Sign in through Apple */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: appleButtonBackground,
+              },
+            ]}
+            activeOpacity={0.3}
+            onPress={onApplePress}
+          >
+            <Image style={{ width: 26, height: 26 }} source={appleIcon} />
+            <Text style={[styles.buttonText, { color: appleButtonForeground }]}>
+              Sign in with Apple
+            </Text>
+          </TouchableOpacity>
+
+          {/* Sign in through google */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor:
+                  colorScheme === "dark" ? "rgb(33,40,55)" : "rgb(248, 248, 248)",
+                borderColor: inputBorder,
+              },
+            ]}
+            activeOpacity={0.3}
+            onPress={onGooglePress}
+          >
+            <Image style={{ width: 26, height: 26 }} source={googleIcon} />
+            <Text style={[styles.buttonText, { color: theme.textColor }]}>
+              Sign in with Google
+            </Text>
+          </TouchableOpacity>
+
+          <View style={styles.line}></View>
+
+          {/* Email text input */}
           <TextInput
             style={[
               styles.input,
@@ -285,6 +357,7 @@ const HomeScreen = () => {
             onSubmitEditing={() => passwordInputRef.current?.focus()}
             blurOnSubmit={false}
           />
+          {/* Password text input */}
           <TextInput
             ref={passwordInputRef}
             style={[
@@ -310,13 +383,13 @@ const HomeScreen = () => {
           />
 
           {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-
+          
+          {/* Submit through email button */}
           <TouchableOpacity
             style={[
               styles.button,
               {
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#e9e9e9ff",
+                backgroundColor: "#fbc11f",
                 borderColor: inputBorder,
                 justifyContent: "center",
               },
@@ -333,24 +406,8 @@ const HomeScreen = () => {
               </Text>
             )}
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  colorScheme === "dark" ? "rgb(33,40,55)" : "#e9e9e9ff",
-                borderColor: inputBorder,
-              },
-            ]}
-            activeOpacity={0.3}
-            onPress={onGooglePress}
-          >
-            <Image style={{ width: 40, height: 40 }} source={googleIcon} />
-            <Text style={[styles.buttonText, { color: theme.textColor }]}>
-              Sign in with Google
-            </Text>
-          </TouchableOpacity>
+          
+          
         </>
       ) : (
         <>
@@ -449,8 +506,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    width: "54%",
-    height: "25%",
+    width: "27%",
+    height: "12.5%",
     justifyContent: "center",
   },
   text: {
@@ -467,16 +524,23 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "black",
-    fontSize: 19,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "500",
     textAlign: "center",
   },
+  appleLogo: {
+    fontSize: 22,
+    lineHeight: 26,
+    // NOTE: this is a Unicode Apple glyph used as a placeholder icon. Swap
+    // this <Text> for an <Image source={require(...)} /> once a real Apple
+    // logo asset (per Apple's Human Interface Guidelines) is added to
+    // assets/images/.
+  },
   button: {
-    paddingVertical: 13,
-    paddingHorizontal: 20,
+    paddingHorizontal: 33,
     width: 270,
     borderRadius: 10,
-    minHeight: 40,
+    minHeight: 50,
     margin: 8,
     flexDirection: "row",
     alignItems: "center",
@@ -487,12 +551,19 @@ const styles = StyleSheet.create({
   input: {
     width: 270,
     borderRadius: 10,
-    borderWidth: 1,
+    borderWidth: 0.3,
     borderStyle: "solid",
     paddingVertical: 12,
     paddingHorizontal: 14,
     margin: 6,
     fontSize: 16,
+  },
+  line: {
+    width: "69%",
+    marginVertical: 20,
+    height: 2,
+    backgroundColor: "#c0c0c0",
+    borderRadius: 999,
   },
   errorText: {
     color: "#e05252",
