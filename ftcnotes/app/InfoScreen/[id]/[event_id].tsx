@@ -10,14 +10,203 @@ import {
   TextInput,
   useColorScheme,
   Modal,
+  PanResponder,
+  Dimensions,
+  GestureResponderEvent,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useAuth } from "@clerk/clerk-expo";
 
 // Which field is currently being edited in the popup modal.
 type EditableField = "auto" | "teleop" | "endgame" | "notes" | null;
+
+// ---- Field grid config/helpers ----
+const GRID_SIZE = 12;
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const tileIndex = (row: number, col: number) => row * GRID_SIZE + col;
+
+const isAdjacent = (a: number, b: number) => {
+  if (a === b) return false;
+  const rowA = Math.floor(a / GRID_SIZE);
+  const colA = a % GRID_SIZE;
+  const rowB = Math.floor(b / GRID_SIZE);
+  const colB = b % GRID_SIZE;
+  return Math.abs(rowA - rowB) <= 1 && Math.abs(colA - colB) <= 1;
+};
+
+const hasAdjacentSelected = (index: number, selected: Set<number>) => {
+  for (const sel of selected) {
+    if (isAdjacent(index, sel)) return true;
+  }
+  return false;
+};
+
+// Converts the internal Set<number> representation into a plain array of
+// {row, col} coordinates -- this is the shape you actually want to send
+// to (and receive from) the backend, since raw tile indices are an
+// internal detail of this component.
+const tilesToCoordinates = (
+  tiles: Set<number>,
+): { row: number; col: number }[] =>
+  Array.from(tiles)
+    .sort((a, b) => a - b)
+    .map((index) => ({
+      row: Math.floor(index / GRID_SIZE),
+      col: index % GRID_SIZE,
+    }));
+
+// Inverse of tilesToCoordinates -- rebuilds the Set<number> the grid
+// component works with from an array of {row, col} coordinates (e.g. what
+// comes back from the API).
+const coordinatesToTiles = (
+  coords: { row: number; col: number }[],
+): Set<number> => new Set(coords.map(({ row, col }) => tileIndex(row, col)));
+
+// Renders the FTC field image with a 12x12 grid on top of it.
+// When `interactive` is true, tapping/dragging over tiles toggles them
+function FieldGrid({
+  selectedTiles,
+  setSelectedTiles,
+  size,
+  interactive,
+}: {
+  selectedTiles: Set<number>;
+  setSelectedTiles: React.Dispatch<React.SetStateAction<Set<number>>>;
+  size: number;
+  interactive: boolean;
+}) {
+  const cellSize = size / GRID_SIZE;
+
+  // Tracks whether the current drag gesture is adding or removing tiles,
+  // decided by whatever the finger first touched down on.
+  const gestureModeRef = useRef<"add" | "remove" | null>(null);
+  // Tiles already handled during the current gesture, so a lingering
+  // finger doesn't keep re-toggling the same tile on every move event.
+  const processedRef = useRef<Set<number>>(new Set());
+
+  // locationX/locationY on gesture events aren't reliably relative to this
+  // container (they can end up relative to whatever child view got
+  // hit-tested), so instead we track this container's own screen position
+  // and work off of pageX/pageY, which are always screen-absolute.
+  const containerRef = useRef<View>(null);
+  const containerOffset = useRef({ x: 0, y: 0 });
+
+  const measureContainer = () => {
+    containerRef.current?.measureInWindow((x, y) => {
+      containerOffset.current = { x, y };
+    });
+  };
+
+  const getTileFromPagePosition = (pageX: number, pageY: number) => {
+    const x = pageX - containerOffset.current.x;
+    const y = pageY - containerOffset.current.y;
+    const col = Math.floor(x / cellSize);
+    const row = Math.floor(y / cellSize);
+    if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return null;
+    return tileIndex(row, col);
+  };
+
+  const handleTouch = (pageX: number, pageY: number, isStart: boolean) => {
+    const index = getTileFromPagePosition(pageX, pageY);
+    if (index === null) return;
+    if (processedRef.current.has(index)) return;
+
+    if (isStart) {
+      processedRef.current = new Set();
+      gestureModeRef.current = selectedTiles.has(index) ? "remove" : "add";
+    }
+    processedRef.current.add(index);
+
+    setSelectedTiles((prev) => {
+      const next = new Set(prev);
+      if (gestureModeRef.current === "remove") {
+        next.delete(index);
+        return next;
+      }
+      // add mode
+      if (next.has(index)) return next;
+      if (next.size === 0 || hasAdjacentSelected(index, next)) {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => interactive,
+      onMoveShouldSetPanResponder: () => interactive,
+      onPanResponderGrant: (evt: GestureResponderEvent) => {
+        // Re-measure right before use in case the modal/layout only just
+        // settled (e.g. right after the fullscreen editor opens).
+        measureContainer();
+        // measureInWindow's callback can land a frame late on first open,
+        // so also fall back to page coords immediately using the last
+        // known offset (0,0 the very first time) and rely on the fresh
+        // measurement being ready for subsequent moves.
+        handleTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY, true);
+      },
+      onPanResponderMove: (evt: GestureResponderEvent) => {
+        handleTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY, false);
+      },
+      onPanResponderRelease: () => {
+        gestureModeRef.current = null;
+        processedRef.current = new Set();
+      },
+      onPanResponderTerminate: () => {
+        gestureModeRef.current = null;
+        processedRef.current = new Set();
+      },
+    })
+  ).current;
+
+  return (
+    <View
+      ref={containerRef}
+      onLayout={measureContainer}
+      style={{ width: size, height: size }}
+      // "box-only" makes this View the sole touch target and stops the
+      // image/grid-cell children underneath from being hit-tested.
+      pointerEvents={interactive ? "box-only" : "auto"}
+      {...(interactive ? panResponder.panHandlers : {})}
+    >
+      <Image
+        // Save the attached top-down field image into your assets folder
+        // and point this at it (adjust the relative path as needed).
+        source={require("../../../assets/images/FTCField.png")}
+        style={{ width: size, height: size, position: "absolute" }}
+        resizeMode="stretch"
+      />
+      <View style={{ width: size, height: size }}>
+        {Array.from({ length: GRID_SIZE }).map((_, row) => (
+          <View key={row} style={{ flexDirection: "row" }}>
+            {Array.from({ length: GRID_SIZE }).map((_, col) => {
+              const index = tileIndex(row, col);
+              const isSelected = selectedTiles.has(index);
+              return (
+                <View
+                  key={col}
+                  style={{
+                    width: cellSize,
+                    height: cellSize,
+                    backgroundColor: isSelected
+                      ? "rgba(250, 192, 0, 0.49)"
+                      : "transparent",
+                    borderWidth: 0.5,
+                    borderColor: "rgba(255,255,255,0.18)",
+                  }}
+                />
+              );
+            })}
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 export default function InfoScreen() {
   const { getToken } = useAuth();
@@ -45,6 +234,21 @@ export default function InfoScreen() {
           setTeleopScore(info["teleop_score"]);
           setEndgameScore(info["endgame_score"]);
           setNotes(info["notes"]);
+
+          // field_tiles comes back as either a JSON string (if the backend
+          // stores it as raw TEXT) or an already-parsed array/object,
+          // depending on how your API serializes it -- handle both.
+          if (info["field_tiles"]) {
+            try {
+              const coords =
+                typeof info["field_tiles"] === "string"
+                  ? JSON.parse(info["field_tiles"])
+                  : info["field_tiles"];
+              setSelectedTiles(coordinatesToTiles(coords));
+            } catch (err) {
+              console.error("Failed to parse field_tiles:", err);
+            }
+          }
         }
       })
       .catch((err) => console.error("Error fetching events:", err));
@@ -142,6 +346,11 @@ export default function InfoScreen() {
   const [editingField, setEditingField] = useState<EditableField>(null);
   const [draftValue, setDraftValue] = useState("");
 
+  // Field position grid: which tiles are colored, and whether the
+  // fullscreen editor for it is open.
+  const [selectedTiles, setSelectedTiles] = useState<Set<number>>(new Set());
+  const [isFieldEditorOpen, setIsFieldEditorOpen] = useState(false);
+
   // Config for each editable field: label shown in the modal, current value,
   // the setter to update local state after a successful save, the key the
   // API expects, and whether it should use a numeric keypad.
@@ -228,6 +437,59 @@ export default function InfoScreen() {
       .catch((error) => {
         console.error("Error posting event:", error);
       });
+  };
+
+  const openFieldEditor = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsFieldEditorOpen(true);
+  };
+
+  // Sends the current tile selection to the backend, in the same
+  // create-info shape as the other fields, as {row, col} coordinates.
+  const saveFieldTiles = async (tiles: Set<number>) => {
+    const token = await getToken();
+
+    const payload: Record<string, any> = {
+      team_id: id,
+      event_id: event_id,
+      auto_score: autoScore,
+      teleop_score: teleopScore,
+      endgame_score: endgameScore,
+      notes: notes,
+      field_tiles: tilesToCoordinates(tiles),
+    };
+
+    try {
+      const response = await fetch(`https://inp.pythonanywhere.com/api/create-info`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const text = await response.text();
+      if (text.startsWith("{") || text.startsWith('"E')) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        console.log("Field tiles saved:", text);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        console.error("Unexpected response saving field tiles:", text);
+      }
+    } catch (error) {
+      console.error("Error saving field tiles:", error);
+    }
+  };
+
+  const closeFieldEditor = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsFieldEditorOpen(false);
+    saveFieldTiles(selectedTiles);
+  };
+
+  const clearFieldTiles = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedTiles(new Set());
   };
 
   // Small helper so each score box doesn't repeat the same JSX 3 times.
@@ -428,6 +690,33 @@ export default function InfoScreen() {
               {notes || "Tap to add notes"}
             </Text>
           </TouchableOpacity>
+
+          {/* Field Positions Section: */}
+          <Text
+            style={[
+              styles.text,
+              {
+                color: theme.textColor,
+                fontSize: 26,
+                marginLeft: 20,
+                marginTop: 10,
+              },
+            ]}
+          >
+            Field Positions
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={openFieldEditor}
+            style={{ alignSelf: "center", marginBottom: 50 }}
+          >
+            <FieldGrid
+              selectedTiles={selectedTiles}
+              setSelectedTiles={setSelectedTiles}
+              size={340}
+              interactive={false}
+            />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -504,6 +793,57 @@ export default function InfoScreen() {
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
+          </View>
+        </Modal>
+      )}
+
+      {isFieldEditorOpen && (
+        <Modal transparent={false} animationType={"fade"}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: theme.background,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <FieldGrid
+              selectedTiles={selectedTiles}
+              setSelectedTiles={setSelectedTiles}
+              size={SCREEN_WIDTH - 32}
+              interactive={true}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 16,
+                marginTop: 24,
+              }}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.cancelButton,
+                  {
+                    backgroundColor:
+                      colorScheme === "dark" ? "rgb(33,40,55)" : "#F2F2F2",
+                    borderColor:
+                      colorScheme === "dark" ? "rgba(255,255,255,0.2)" : "#d8d8d8",
+                  },
+                ]}
+                onPress={clearFieldTiles}
+              >
+                <Text
+                  style={{ fontWeight: "bold", fontSize: 16, color: theme.textColor }}
+                >
+                  Clear
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={closeFieldEditor}>
+                <Text style={{ fontWeight: "bold", fontSize: 16 }}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       )}
