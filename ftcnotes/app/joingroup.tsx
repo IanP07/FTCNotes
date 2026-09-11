@@ -1,3 +1,4 @@
+import ProfileMenu from "../components/profile-menu";
 import React, { useCallback } from "react";
 import { useState, useEffect } from "react";
 import {
@@ -13,14 +14,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { useClerk } from "@clerk/clerk-expo";
 import { VerificationCodeInput } from "@/components/join-group-box";
-import * as Haptics from "expo-haptics";
 
 const JoinGroupsScreen = () => {
   const { getToken, userId, isSignedIn } = useAuth();
   const { user } = useUser();
-  const { signOut } = useClerk();
 
   const router = useRouter();
 
@@ -95,25 +93,7 @@ const JoinGroupsScreen = () => {
         >
           <Image style={styles.backIcon} source={backIcon} />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={async () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            await signOut();
-            router.push("/");
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 7,
-              marginRight: 10,
-            }}
-          >
-            <Image style={styles.image} source={{ uri: user?.imageUrl }} />
-            <Text style={{ color: theme.textColor }}>Sign out</Text>
-          </View>
-        </TouchableOpacity>
+        <ProfileMenu />
       </View>
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <Text
@@ -216,14 +196,6 @@ const styles = StyleSheet.create({
   backIcon: {
     width: 60,
     height: 60,
-  },
-  image: {
-    width: 30,
-    height: 30,
-    borderRadius: 100,
-    borderColor: "#dea300",
-    borderWidth: 2,
-    borderStyle: "solid",
   },
   text: {
     color: "black",

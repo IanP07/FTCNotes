@@ -1,3 +1,4 @@
+import ProfileMenu from "../components/profile-menu";
 import React from "react";
 import { useState, useEffect } from "react";
 import {
@@ -11,13 +12,12 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import * as Haptics from "expo-haptics";
 
 const dashboardPendingScreen = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { signOut } = useClerk();
 
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -210,17 +210,7 @@ const dashboardPendingScreen = () => {
           </Text>
         </View>
 
-        <TouchableOpacity
-          onPress={async () => {
-            await signOut();
-            router.push("/");
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-            <Image style={styles.image} source={{ uri: user?.imageUrl }} />
-            <Text style={{ color: theme.textColor }}>Sign out</Text>
-          </View>
-        </TouchableOpacity>
+        <ProfileMenu />
       </View>
       <View
         style={{
@@ -406,13 +396,6 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: "bold",
     textAlign: "center",
-  },
-  image: {
-    width: 30,
-    height: 30,
-    borderRadius: 100,
-    borderColor: "#dea300",
-    borderWidth: 2,
   },
   topbar: {
     flexDirection: "row",

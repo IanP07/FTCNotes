@@ -10,7 +10,8 @@ import {
   useColorScheme,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
-import { useAuth, useUser, useClerk } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import ProfileMenu from "../components/profile-menu";
 import LeaveConfirmationModal from "../components/ui/leaveGroupModal";
 import * as Haptics from "expo-haptics";
 import * as Clipboard from 'expo-clipboard';
@@ -157,7 +158,6 @@ const GroupsScreen = () => {
     }
   };
 
-  const { signOut } = useClerk();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
@@ -483,18 +483,7 @@ const GroupsScreen = () => {
           My Group
         </Text>
 
-        <TouchableOpacity
-          onPress={async () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            await signOut();
-            router.push("/");
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-            <Image style={styles.image} source={{ uri: user?.imageUrl }} />
-            <Text style={{ color: theme.textColor }}>Sign out</Text>
-          </View>
-        </TouchableOpacity>
+        <ProfileMenu />
       </View>
       <View
         style={[

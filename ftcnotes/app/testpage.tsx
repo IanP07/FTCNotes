@@ -1,33 +1,14 @@
-import React, { useCallback } from "react";
-import { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  useColorScheme,
-  Alert,
-  Button,
-} from "react-native";
+import { View } from "react-native";
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { useClerk } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
+import ProfileMenu from "../components/profile-menu";
 
 function Test() {
-  const { getToken, userId, isSignedIn } = useAuth();
+  const { userId, isSignedIn } = useAuth();
   const { user } = useUser();
-  const { signOut } = useClerk();
 
   console.log("User email: ", user?.primaryEmailAddress?.emailAddress);
   console.log("User ID: ", userId);
   console.log("Is user signed in: ", isSignedIn);
-
-  const router = useRouter();
-
-  const switchPage = () => {
-    router.push("./index");
-  };
 
   return (
     <View
@@ -39,13 +20,7 @@ function Test() {
         height: 100,
       }}
     >
-      <Button
-        title="Sign out"
-        onPress={async () => {
-          await signOut();
-          switchPage();
-        }}
-      />
+      <ProfileMenu />
     </View>
   );
 }
