@@ -2,6 +2,8 @@
 
 <h2>The best scouting and notetaking app for FTC Competitions</h2>
 
+<H3>Available on the App Store, Google Play coming soon!</H3>
+
 ## Technologies
 
 ![React Native](https://img.shields.io/badge/React%20Native-4FB0D6?style=for-the-badge&logo=react&logoColor=white)
