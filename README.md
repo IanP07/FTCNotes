@@ -27,6 +27,9 @@
 </p>
 
 ## Features
-- Secure google signin
+- Secure google/apple signin
+- Top down autonomous map drawing
+- Offline sync + Cloud database storage
+- Clean and responsive UI
 - Automatic team ranking based on cummulative avg points
 - Ability to manage organizations for both owners/admins and members
