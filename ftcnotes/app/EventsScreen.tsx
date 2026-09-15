@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Keyboard,
   KeyboardAvoidingView,
   TextInput,
   useColorScheme,
@@ -32,6 +33,22 @@ export default function EventsScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setIsKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () =>
+      setIsKeyboardVisible(false),
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const { getToken } = useAuth();
 
@@ -443,7 +460,7 @@ export default function EventsScreen() {
         <View style={styles.centeredTextContainer}>
           <ActivityIndicator size="large" />
         </View>
-      ) : events.length === 0 ? (
+      ) : events.length === 0 && !isKeyboardVisible ? (
         <View style={styles.centeredTextContainer}>
           <Text style={[styles.text, { color: theme.textColor }]}>
             Add FTC Events Here!
