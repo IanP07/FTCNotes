@@ -2,6 +2,8 @@
 
 <h2>The best scouting and notetaking app for FTC Competitions</h2>
 
+<H3>Available on the App Store, Google Play coming soon!</H3>
+
 ## Technologies
 
 ![React Native](https://img.shields.io/badge/React%20Native-4FB0D6?style=for-the-badge&logo=react&logoColor=white)
@@ -25,6 +27,9 @@
 </p>
 
 ## Features
-- Secure google signin
+- Secure google/apple signin
+- Top down autonomous map drawing
+- Offline sync + Cloud database storage
+- Clean and responsive UI
 - Automatic team ranking based on cummulative avg points
 - Ability to manage organizations for both owners/admins and members
