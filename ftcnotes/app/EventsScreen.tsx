@@ -143,7 +143,7 @@ export default function EventsScreen() {
       const data = await res.json();
 
       const eventsWithCounts = await Promise.all(
-        data.map(async (event: { id: number }) => {
+        data.map(async (event: { id: number; date: string }) => {
           const countRes = await fetch(
             `https://inp.pythonanywhere.com/api/team-amount/${event.id}`,
             {
@@ -161,7 +161,17 @@ export default function EventsScreen() {
         }),
       );
 
-      setEvents(eventsWithCounts);
+      const dateValue = (date: string) => {
+        const [month, day, year] = date.split("/").map(Number);
+        return new Date(year, month - 1, day).getTime();
+      };
+
+      setEvents(
+        [...eventsWithCounts].sort(
+          (a, b) => dateValue(b.date) - dateValue(a.date)
+        )
+      );
+      
     } catch (error) {
       console.log("Error fetching events", error);
     } finally {
