@@ -12,7 +12,7 @@ import {
   useColorScheme,
   ActivityIndicator,
 } from "react-native";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -20,6 +20,8 @@ import { Href, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { FlipInEasyX } from "react-native-reanimated";
 import { green, red } from "react-native-reanimated/lib/typescript/Colors";
+import ScoutEventModal from "../components/ui/ScoutEventModal";
+import { searchScoutEvents, fetchScoutTeams, ScoutEvent, ScoutTeam } from "../services/ftcScout";
 import DeleteConfirmationModal from "../components/ui/deleteEventModal";
 import * as Haptics from "expo-haptics";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
@@ -239,50 +241,116 @@ export default function EventsScreen() {
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventLocation, setNewEventLocation] = useState("");
 
-  const handleAddEvent = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (newEventName.trim().length === 0) return;
+  const [creationBusy, setCreationBusy] = useState(false);
+  const creationLock = useRef(false);
+  const [creationError, setCreationError] = useState("");
+  const [showScoutModal, setShowScoutModal] = useState(false);
+  const [scoutEvents, setScoutEvents] = useState<ScoutEvent[]>([]);
+  // Retain event details and team data together for the future import endpoint.
+  const [scoutPreview, setScoutPreview] = useState<{
+    event: ScoutEvent;
+    teams: ScoutTeam[];
+    draft: { name: string; date: string; location: string };
+  } | null>(null);
 
-    setShowForm(false); // Hide the form
-
+  const createManualEvent = async () => {
     const token = await getToken();
-    // Creates new event
-    fetch("https://inp.pythonanywhere.com/api/create-event", {
+    const response = await fetch("https://inp.pythonanywhere.com/api/create-event", {
       method: "POST",
       body: JSON.stringify({
-        name: newEventName,
+        name: newEventName.trim(),
         date: newEventDate,
-        location: newEventLocation,
+        location: newEventLocation.trim(),
       }),
       headers: {
-        "Content-type": "application/json; charset=UTF-8",
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    })
-      .then((response) => {
-        console.log("Response Status:", response.status); // logs HTTP response code
-        return response.text();
-      })
-      .then((text) => {
-        // 'text' is the return response from previous .then statement
-        if (text.startsWith("{")) {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          console.log("Event created successfully:", text);
-          fetchEvents(userOrgID);
-        } else {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-          console.error("Unexpected response:", text);
-        }
-      })
-      .catch((error) => {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        console.error("Error posting event:", error);
-      });
-
-    // Clear the input
+    });
+    if (!response.ok) throw new Error(`Could not create event (${response.status}). Please try again.`);
+    await response.json();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    setShowScoutModal(false);
+    setShowForm(false);
+    setScoutPreview(null);
     setNewEventName("");
     setNewEventDate("");
     setNewEventLocation("");
+    await fetchEvents(userOrgID);
+  };
+
+  const handleManualEntry = async () => {
+    if (creationLock.current) return;
+    creationLock.current = true;
+    setCreationBusy(true);
+    setCreationError("");
+    try {
+      await createManualEvent();
+    } catch (error) {
+      setCreationError(error instanceof Error ? error.message : "Could not create event. Please try again.");
+    } finally {
+      creationLock.current = false;
+      setCreationBusy(false);
+    }
+  };
+
+  const handleAddEvent = async () => {
+    if (creationLock.current) return;
+    setCreationError("");
+    const [month, day, year] = newEventDate.split("/").map(Number);
+    const date = new Date(year, month - 1, day);
+    if (!newEventName.trim() || !newEventLocation.trim() ||
+        !/^\d{2}\/\d{2}\/\d{4}$/.test(newEventDate) ||
+        date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      setCreationError("Enter a name, location, and valid date (mm/dd/yyyy).");
+      return;
+    }
+    creationLock.current = true;
+    setCreationBusy(true);
+    setScoutPreview(null);
+    setScoutEvents([]);
+    Keyboard.dismiss();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      let matches: ScoutEvent[];
+      try {
+        matches = await searchScoutEvents(newEventName.trim());
+      } catch {
+        setCreationError("FTCScout search is unavailable. Try again from event details, or enter teams manually.");
+        setShowScoutModal(true);
+        return;
+      }
+      if (matches.length === 0) {
+        await createManualEvent();
+      } else {
+        setScoutEvents(matches);
+        setShowScoutModal(true);
+      }
+    } catch (error) {
+      setCreationError(error instanceof Error ? error.message : "Could not create event. Please try again.");
+    } finally {
+      creationLock.current = false;
+      setCreationBusy(false);
+    }
+  };
+
+  const handleScoutSelection = async (event: ScoutEvent) => {
+    if (creationLock.current) return;
+    creationLock.current = true;
+    setCreationBusy(true);
+    setCreationError("");
+    try {
+      const teams = await fetchScoutTeams(event);
+      setScoutPreview({
+        event, teams,
+        draft: { name: newEventName.trim(), date: newEventDate, location: newEventLocation.trim() },
+      });
+    } catch {
+      setCreationError("Could not load teams. Select the event to retry, or enter teams manually.");
+    } finally {
+      creationLock.current = false;
+      setCreationBusy(false);
+    }
   };
 
   const handleDeleteEvent = (eventId: number) => {
@@ -327,6 +395,8 @@ export default function EventsScreen() {
 
   const eventSetupFunc = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (creationLock.current) return;
+    setCreationError("");
     setShowForm(true); // shows form to add event
   };
 
@@ -371,9 +441,9 @@ export default function EventsScreen() {
 
         <View style={styles.line}></View>
 
-        {events.map((event, index) => (
+        {events.map((event) => (
           <View
-            key={index}
+            key={event.id}
             style={[
               styles.button,
               { borderWidth: colorScheme === "light" ? 1 : 0 },
@@ -390,7 +460,7 @@ export default function EventsScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              key={index}
+              key={event.id}
               style={{ flex: 1 }}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -457,6 +527,18 @@ export default function EventsScreen() {
         ))}
       </ScrollView>
 
+      <ScoutEventModal
+        visible={showScoutModal}
+        events={scoutEvents}
+        preview={scoutPreview}
+        busy={creationBusy}
+        error={creationError}
+        onSelect={handleScoutSelection}
+        onManual={handleManualEntry}
+        onBack={() => { setScoutPreview(null); setCreationError(""); }}
+        onClose={() => { setShowScoutModal(false); setCreationError(""); }}
+      />
+
       {showDeleteModal && (
         <DeleteConfirmationModal
           visible={showDeleteModal}
@@ -485,6 +567,7 @@ export default function EventsScreen() {
           style={{ width: "100%", display: "flex", alignItems: "center"}}
         >
           <TextInput
+            editable={!creationBusy}
             placeholder="Enter event name"
             placeholderTextColor={theme.textColor}
             style={[styles.input, { color: theme.textColor }]}
@@ -492,6 +575,7 @@ export default function EventsScreen() {
             onChangeText={setNewEventName} // stores text data in the newEventName state
           />
           <TextInput
+            editable={!creationBusy}
             placeholder="Enter date mm/dd/yyyy"
             placeholderTextColor={theme.textColor}
             style={[styles.input, { color: theme.textColor }]}
@@ -500,14 +584,18 @@ export default function EventsScreen() {
             keyboardType="numeric"
           />
           <TextInput
+            editable={!creationBusy}
             placeholder="Enter location"
             placeholderTextColor={theme.textColor}
             style={[styles.input, { color: theme.textColor }]}
             value={newEventLocation}
             onChangeText={setNewEventLocation} // stores text data in the newEventName state
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
-            <Text style={styles.buttonText}>Add Event</Text>
+          {!!creationError && !showScoutModal && (
+            <Text accessibilityRole="alert" style={{ color: colorScheme === "dark" ? "#FCA5A5" : "#B91C1C", marginBottom: 10, width: "93%" }}>{creationError}</Text>
+          )}
+          <TouchableOpacity accessibilityRole="button" disabled={creationBusy} style={[styles.addButton, creationBusy && { opacity: 0.6 }]} onPress={handleAddEvent}>
+            {creationBusy ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>Create</Text>}
           </TouchableOpacity>
         </KeyboardAvoidingView>
       )}
