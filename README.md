@@ -2,7 +2,7 @@
 
 <h2>The best scouting and notetaking app for FTC Competitions</h2>
 
-<H3>Available on the App Store, Google Play coming soon!</H3>
+<H3>Available on the App Store and Google Play!</H3>
 
 ## Technologies
 
