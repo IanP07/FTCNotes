@@ -237,7 +237,6 @@ export default function InfoScreen() {
 
           // field_tiles comes back as either a JSON string (if the backend
           // stores it as raw TEXT) or an already-parsed array/object,
-          // depending on how your API serializes it -- handle both.
           if (info["field_tiles"]) {
             try {
               const coords =
@@ -352,8 +351,6 @@ export default function InfoScreen() {
   const [isFieldEditorOpen, setIsFieldEditorOpen] = useState(false);
 
   // Config for each editable field: label shown in the modal, current value,
-  // the setter to update local state after a successful save, the key the
-  // API expects, and whether it should use a numeric keypad.
   const fieldConfig = {
     auto: {
       label: "Autonomous Score",
