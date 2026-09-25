@@ -719,9 +719,11 @@ export default function InfoScreen() {
 
       {editingField && (
         <Modal transparent={true} animationType={"fade"}>
-          <View style={styles.modalBackdrop}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.modalBackdrop}
+          >
+            <View
               style={[
                 styles.modalCard,
                 {
@@ -789,8 +791,8 @@ export default function InfoScreen() {
                   <Text style={{ fontWeight: "bold", fontSize: 16 }}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </KeyboardAvoidingView>
-          </View>
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
       )}
 

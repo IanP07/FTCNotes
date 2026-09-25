@@ -267,7 +267,11 @@ export default function TeamsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.background }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+    >
       <View style={styles.topBar}>
         <View
           style={{
@@ -400,11 +404,7 @@ export default function TeamsScreen() {
       )}
 
       {showForm && ( // Only displays this when plus button is pressed, setting state to true
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%", display: "flex", alignItems: "center"}}
-        >
+        <View style={{ width: "100%", display: "flex", alignItems: "center" }}>
           <TextInput
             placeholder="Enter team name"
             placeholderTextColor={theme.textColor}
@@ -423,9 +423,9 @@ export default function TeamsScreen() {
           <TouchableOpacity style={styles.addButton} onPress={handleAddTeam}>
             <Text style={styles.buttonText}>Add Team</Text>
           </TouchableOpacity>
-        </KeyboardAvoidingView>
+        </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

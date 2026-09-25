@@ -331,7 +331,11 @@ export default function EventsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.background }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+    >
       <View style={styles.topBar}>
         <View
           style={{
@@ -479,11 +483,7 @@ export default function EventsScreen() {
       ) : null}
 
       {showForm && ( // Only displays this when plus button is pressed, setting state to true
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-          style={{ width: "100%", display: "flex", alignItems: "center"}}
-        >
+        <View style={{ width: "100%", display: "flex", alignItems: "center" }}>
           <TextInput
             placeholder="Enter event name"
             placeholderTextColor={theme.textColor}
@@ -509,9 +509,9 @@ export default function EventsScreen() {
           <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
             <Text style={styles.buttonText}>Add Event</Text>
           </TouchableOpacity>
-        </KeyboardAvoidingView>
+        </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
