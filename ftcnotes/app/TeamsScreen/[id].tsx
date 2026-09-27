@@ -234,6 +234,7 @@ export default function TeamsScreen() {
   };
 
   const handleEditTeam = async (name: string, number: number) => {
+    // gets called when you press confirm on modal
     if (!teamToEdit) return;
     const token = await getToken();
     const response = await fetch('https://inp.pythonanywhere.com/api/edit-team', {
