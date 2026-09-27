@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams, Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import DeleteConfirmationModal from "../../components/ui/deleteTeamModal";
+import EditTeamModal from "../../components/ui/editTeamModal";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
@@ -29,6 +30,7 @@ export default function TeamsScreen() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<number | null>(null);
+  const [teamToEdit, setTeamToEdit] = useState<{ team_id: number; name: string; number: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
@@ -202,7 +204,7 @@ export default function TeamsScreen() {
       method: "POST",
       body: JSON.stringify({
         event_id: id,
-        date_created: "2025-06-04", // TODO: Either make this not useless or remove it
+        date_created: new Date().toISOString().slice(0, 10),
         name: newTeamName,
         number: newTeamNumber,
       }),
@@ -229,6 +231,29 @@ export default function TeamsScreen() {
 
     setNewTeamName(""); // Clear the name input
     setNewTeamNumber(""); // Clears the number input
+  };
+
+  const handleEditTeam = async (name: string, number: number) => {
+    if (!teamToEdit) return;
+    const token = await getToken();
+    const response = await fetch('https://inp.pythonanywhere.com/api/edit-team', {
+      method: "PATCH",
+      headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        team_id: teamToEdit.team_id,
+        team_name: name,
+        team_number: number,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Failed to update team");
+    setTeams((currentTeams) => currentTeams.map((team) =>
+      team.team_id === teamToEdit.team_id ? { ...team, name, number } : team
+    ));
+    setTeamToEdit(null);
   };
 
   const handleDeleteTeam = (teamId: number) => {
@@ -331,6 +356,18 @@ export default function TeamsScreen() {
                 </View>
 
                 <TouchableOpacity
+                  onPress={() => setTeamToEdit(team)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${team.name}`}
+                  style={styles.editButtonWrapper}
+                >
+                  <Image
+                    source={require("../../assets/images/editIconLight.png")}
+                    style={styles.editButton}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity
                   onPress={() => handleDeleteTeam(team.team_id)}
                   style={styles.deleteButtonWrapper}
                 >
@@ -380,6 +417,16 @@ export default function TeamsScreen() {
             </View>
           ))}
         </ScrollView>
+      )}
+
+      {teamToEdit && (
+        <EditTeamModal
+          key={teamToEdit.team_id}
+          name={teamToEdit.name}
+          number={teamToEdit.number}
+          onSubmit={handleEditTeam}
+          onClose={() => setTeamToEdit(null)}
+        />
       )}
 
       {showDeleteModal && (
@@ -513,6 +560,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   deleteButton: {
+    position: "absolute",
+    width: 16.5,
+    height: 16.5,
+  },
+  editButtonWrapper: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgb(0, 125, 250)",
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingLeft: 20,
+    paddingRight: 20,
+    borderRadius: 20,
+  },
+  editButton: {
     position: "absolute",
     width: 16.5,
     height: 16.5,
